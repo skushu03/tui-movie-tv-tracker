@@ -1,0 +1,14 @@
+Screen {
+}
+
+Pane {
+	width: 1fr;
+	border: solid white;
+	height: 1fr;
+}
+
+ListView {
+	width: 1fr;
+	border: solid white;
+	height: 1fr;
+}
