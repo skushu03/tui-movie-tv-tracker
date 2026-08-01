@@ -7,8 +7,34 @@ Pane {
 	height: 1fr;
 }
 
-ListView {
-	width: 1fr;
+.pane-window {
 	border: solid white;
-	height: 1fr;
+	padding: 0 1;
+	background: transparent;
+	color: rgba(255, 255, 255, 0.7);
+	opacity: 0.7;
+}
+
+.pane-window:focus-within {
+	border: double blue;
+	opacity: 1;
+	color: rgba(255, 255, 255, 1);
+}
+
+InputModal {
+	align: center middle;
+	background: rgba(0, 0, 0, 0.5); /* Dims the main app screen behind it */
+}
+
+#modal-container {
+	width: 60;
+	height: auto;
+	padding: 1;
+	background: transparent;
+	border: solid blue;
+}
+
+#modal-input {
+	margin: 1 0 0 0;
+	padding: 0 1;
 }
