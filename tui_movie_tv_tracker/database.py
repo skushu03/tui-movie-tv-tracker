@@ -109,6 +109,40 @@ def get_lists(db):
         cursor.close()
 
 
+def get_list_items(db, list_id):
+    try:
+        cursor = db.cursor()
+
+        query = """SELECT mi.name, mi.tmdb_id, mi.rating, mi.release_date, mi.media_type
+        FROM media_info mi JOIN list_items li 
+        ON mi.tmdb_id = li.tmdb_id 
+        WHERE li.list_id = ?
+        """
+
+        cursor.execute(query, (list_id,))
+
+        results = cursor.fetchall()
+
+        list_items = []
+        for r in results:
+            list_items.append(
+                {
+                    "name": r["name"],
+                    "tmdb_id": r["tmdb_id"],
+                    "release_date": r["release_date"],
+                    "media_type": r["media_type"],
+                }
+            )
+
+        return list_items
+    except sqlite.Error as e:
+        raise Exception(f"Database Error while retrieving list items: {e}")
+    except Exception as e:
+        raise Exception(f"Unexpected Error while retrieving list items: {e}")
+    finally:
+        cursor.close()
+
+
 def create_list(db, list_name):
     try:
         cursor = db.cursor()

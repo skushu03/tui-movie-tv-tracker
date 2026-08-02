@@ -21,6 +21,10 @@ Pane {
 	color: rgba(255, 255, 255, 1);
 }
 
+.pane-window > ListView {
+	background: transparent;
+}
+
 InputModal {
 	align: center middle;
 	background: rgba(0, 0, 0, 0.5); /* Dims the main app screen behind it */
@@ -37,4 +41,12 @@ InputModal {
 #modal-input {
 	margin: 1 0 0 0;
 	padding: 0 1;
+}
+
+#search-screen-container {
+	padding: 2 3;
+}
+
+#search-screen-container > Input {
+	margin: 1 0;
 }

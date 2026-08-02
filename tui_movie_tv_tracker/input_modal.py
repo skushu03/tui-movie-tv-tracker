@@ -4,18 +4,17 @@ from textual.widgets import Input, Label
 
 
 class InputModal(ModalScreen):
-    """A floating pop-up modal containing a text input field.
-    Specifying ModalScreen[str] tells Textual this modal returns a string."""
-
     def __init__(self, prompt, max_len, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prompt = prompt
         self.max_len = max_len
 
     def compose(self):
-        with Vertical(id="modal-container"):
-            yield Label(self.prompt)
-            yield Input(id="modal-input", max_length=self.max_len)
+        yield Vertical(
+            Label(self.prompt),
+            Input(id="modal-input", max_length=self.max_len),
+            id="modal-container",
+        )
 
     def on_mount(self):
         # focused when modla pops up
