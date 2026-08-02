@@ -8,7 +8,7 @@ from tui_movie_tv_tracker import tmdb_api
 class SearchScreen(Screen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.curr_media = "movie"
+        self.media_type = "movie"
 
     def compose(self):
         yield Vertical(
@@ -25,7 +25,7 @@ class SearchScreen(Screen):
     def on_input_submitted(self, event):
         search_query = event.value.strip()
         if search_query:
-            # tmdb_api.search(search_query, self.curr_media)
+            # tmdb_api.search(search_query, self.media_type)
             self.query_one("#search-results").loading = False
 
     def key_space(self):
