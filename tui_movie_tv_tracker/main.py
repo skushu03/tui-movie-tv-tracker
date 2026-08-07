@@ -21,8 +21,11 @@ class MainScreen(Screen):
     BINDINGS = [
         ("tab", "switch_focus", "Switch focused pane"),
         ("a", "create_list", "Create new list"),
+        ("A", "create_list", "Create new list"),
         ("d", "delete_list", "Delete list"),
+        ("D", "delete_list", "Delete list"),
         ("s", "show_search_screen", "Display search screen"),
+        ("S", "show_search_screen", "Display search screen"),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -62,8 +65,8 @@ class MainScreen(Screen):
 
     async def action_create_list(self):
         async def handle_create_list(list_name):
-            if not list_name:
-                return
+            # if not list_name:
+            #     return
             try:
                 database.create_list(self.app.db, list_name)
                 await self.query_one("#lists").refresh_list()
@@ -102,7 +105,7 @@ class MainScreen(Screen):
         def temp_callback(message):
             self.app.notify(message)
 
-        self.app.push_screen(SearchScreen())
+        self.app.push_screen(SearchScreen(), callback=temp_callback)
 
 
 class LayoutApp(App):

@@ -165,9 +165,11 @@ def create_list(db, list_name):
         db.commit()
 
     except sqlite.IntegrityError as e:
-        raise ValueError(f"Database conflict: {e}")
+        raise Exception(f"Database conflict: {e}")
     except sqlite.Error as e:
         raise Exception(f"Database Error while creating a new list: {e}")
+    except ValueError as e:
+        raise Exception(f"Value Error: {e}")
     except Exception as e:
         raise Exception(f"Unexpected Error while creating a new list: {e}")
     finally:

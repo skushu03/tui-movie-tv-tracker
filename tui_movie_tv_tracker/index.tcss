@@ -50,3 +50,14 @@ InputModal {
 #search-screen-container > Input {
 	margin: 1 0;
 }
+
+#search-results, LoadingIndicator{
+	padding: 1 2;
+	border: solid rgba(255,255,255, 0.5);
+	background: transparent;
+}
+#search-results:focus-within {
+	border: solid blue;
+	opacity: 1;
+	color: rgba(255, 255, 255, 1);
+}
