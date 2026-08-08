@@ -5,7 +5,7 @@ from pathlib import Path
 
 def init_db(db):
     cursor = db.cursor()
-
+    # movies and shows can have the same tmdb id!!!!!!!!!
     create_lists_table = """
         CREATE TABLE IF NOT EXISTS lists(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,11 +18,12 @@ def init_db(db):
 
     create_media_info_table = """
         CREATE TABLE IF NOT EXISTS media_info(
-            name TEXT NOT NULL,
+            title TEXT NOT NULL,
             tmdb_id INTEGER PRIMARY KEY ,
             rating INTEGER NOT NULL,
+            num_ratings INTEGER NOT NULL,
             release_date TEXT NOT NULL,
-            media_type TEXT NOT NULL,
+            media_type TEXT NOT NULL
         )
     """
 
@@ -30,15 +31,28 @@ def init_db(db):
         CREATE TABLE IF NOT EXISTS list_items(
             tmdb_id INTEGER NOT NULL,
             list_id INTEGER NOT NULL,
+            media_type TEXT NOT NULL,
             FOREIGN KEY (list_id) REFERENCES lists (id) ON DELETE CASCADE,
-            FOREIGN KEY (tmdb_id) REFERENCES media_info (tmdb_id) ON DELETE CASCADE,
-            PRIMARY KEY (list_id, tmdb_id)
+            FOREIGN KEY (tmdb_id) REFERENCES media_info (tmdb_id),
+            PRIMARY KEY (list_id, tmdb_id, media_type)
         );
+    """
+
+    # date must be YYYY-MM-DD HH:MM
+    create_diary = """
+        CREATE TABLE IF NOT EXISTS diary(
+            tmdb_id INTEGER NOT NULL,
+            media_type TEXT NOT NULL, 
+            date TEXT NOT NULL, 
+            FOREIGN KEY (tmdb_id) REFERENCES media_info (tmdb_id),
+            PRIMARY KEY (tmdb_id, media_type, date)
+        )
     """
 
     cursor.execute(create_lists_table)
     cursor.execute(create_media_info_table)
     cursor.execute(create_list_items_table)
+    cursor.execute(create_diary)
 
     db.commit()
 
@@ -50,7 +64,7 @@ def get_db(db_name="movie_tv_tracker.db"):
         # hidden directory to store the databases
         home_dir = Path.home()
 
-        db_dir = home_dir / ".media_tv_tracker"
+        db_dir = home_dir / ".tui_media_tracker"
         # if db directory doesnt already exists, create
         db_dir.mkdir(exist_ok=True)
         #
@@ -157,7 +171,7 @@ def create_list(db, list_name):
         if cursor.fetchone():
             raise sqlite.IntegrityError("There is already a list with this name.")
 
-        date = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
+        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         query = "INSERT INTO lists (name, last_updated) VALUES (?, ?)"
 
         cursor.execute(query, (list_name, date))
@@ -195,3 +209,59 @@ def delete_list(db, list_name):
         raise Exception(f"Unexpected Error while deleting a list: {e}")
     finally:
         cursor.close()
+
+
+def get_watched(db):
+    try:
+        cursor = db.cursor()
+
+        query = "SELECT tmdb_id, media_type FROM diary"
+        cursor.execute(query)
+
+        results = cursor.fetchall()
+
+        watched = []
+        for res in results:
+            watched.append((res["tmdb_id"], res["media_type"]))
+
+        return set(watched)
+    except Exception as e:
+        raise Exception(f"Unexpected Error while getting watched media: {e}")
+    finally:
+        cursor.close()
+
+
+def add_diary_entry(db, data):
+    try:
+        cursor = db.cursor()
+        # chcek if media info alreday in db
+        query = "SELECT title FROM media_info WHERE tmdb_id = ? AND media_type = ?"
+        # if not add
+        cursor.execute(query, (data["tmdb_id"], data["media_type"]))
+        if not cursor.fetchone():
+            query = "INSERT INTO media_info (title, tmdb_id, rating, num_ratings, release_date, media_type) VALUES (?, ?, ?, ?, ?, ?)"
+
+            cursor.execute(
+                query,
+                (
+                    data["title"],
+                    data["tmdb_id"],
+                    data["rating"],
+                    data["num_ratings"],
+                    data["release_date"],
+                    data["media_type"],
+                ),
+            )
+        # add to diary
+        query = "INSERT INTO diary (tmdb_id, media_type, date) VALUES (?, ?, ?)"
+
+        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        cursor.execute(query, (data["tmdb_id"], data["media_type"], date))
+
+        db.commit()
+
+    except Exception as e:
+        raise Exception(f"Unexpected Error while adding diary entry: {e}")
+    finally:
+        cursor.close()
+    pass

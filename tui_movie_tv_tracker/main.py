@@ -114,6 +114,10 @@ class LayoutApp(App):
     def on_mount(self) -> None:
         self.ansi_color = True
         self.db = database.get_db()
+        self.watched = database.get_watched(self.db)
+        self.notify(str(self.watched))
+        if not self.db:
+            self.dismiss("")
         self.push_screen(MainScreen(self.db))
 
         # db.close()

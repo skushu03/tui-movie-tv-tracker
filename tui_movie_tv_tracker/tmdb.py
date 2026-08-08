@@ -28,9 +28,10 @@ async def search_movie(query):
 
     normalized_results = []
     async with httpx.AsyncClient() as client:
-        results = await client.get(url, headers=headers)
+        response = await client.get(url, headers=headers)
 
-        for res in results.json()["results"]:
+        results = response.json()
+        for res in results["results"]:
             normalized_results.append(
                 {
                     "title": res["title"],
@@ -39,11 +40,36 @@ async def search_movie(query):
                     "overview": res["overview"],
                     "rating": res["vote_average"],
                     "num_ratings": res["vote_count"],
+                    "release_date": res["release_date"],
+                    "media_type": "movie",
                 }
             )
 
-    return normalized_results
+    return results["page"], results["total_pages"], normalized_results
 
 
 async def search_show(query):
-    pass
+    api_key = dotenv_values(".env")["TMDB_API_KEY"]
+    url = f"https://api.themoviedb.org/3/search/tv?query={query}&include_adult=false&language=en-US&page=1"
+
+    headers = {"Authorization": f"Bearer {api_key}", "accept": "application/json"}
+
+    normalized_results = []
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+
+        results = response.json()
+        for res in results["results"]:
+            normalized_results.append(
+                {
+                    "title": res["name"],
+                    "tmdb_id": res["id"],
+                    "overview": res["overview"],
+                    "rating": res["vote_average"],
+                    "num_ratings": res["vote_count"],
+                    "release_date": res["first_air_date"],
+                    "media_type": "movie",
+                }
+            )
+
+    return results["page"], results["total_pages"], normalized_results

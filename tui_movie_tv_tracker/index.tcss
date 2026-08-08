@@ -43,6 +43,7 @@ InputModal {
 	padding: 0 1;
 }
 
+/* search screen*/
 #search-screen-container {
 	padding: 2 3;
 }
@@ -51,13 +52,40 @@ InputModal {
 	margin: 1 0;
 }
 
-#search-results, LoadingIndicator{
+#search-page {
+	margin-top: 1;
+}
+
+#search-results-container{
 	padding: 1 2;
 	border: solid rgba(255,255,255, 0.5);
 	background: transparent;
 }
-#search-results:focus-within {
+
+
+#search-results-container:focus-within {
 	border: solid blue;
 	opacity: 1;
 	color: rgba(255, 255, 255, 1);
+}
+
+ResultsList, LoadingIndicator {
+	background: transparent;
+}
+
+
+.result-item-row {
+	height: 1;
+}
+
+.result-item-row > Static{
+	width: 1fr;
+}
+
+.media-item-watched {
+	color: green;
+}
+
+.result-item-row > Static:first-child{
+	min-width: 3;
 }

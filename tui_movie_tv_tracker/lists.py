@@ -53,4 +53,4 @@ class Lists(ListView):
             # self.app.notify("Lists updated")
 
         except Exception as e:
-            self.app.notify(str(e))
+            self.app.notify(str(e), severity="warning")

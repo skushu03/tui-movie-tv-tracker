@@ -1,7 +1,8 @@
 from textual.containers import Vertical
 from textual.widgets import ListView, Static
 
-from .database import get_list_items
+import tui_movie_tv_tracker.database as database
+
 from .list_item import ListItem
 
 
@@ -25,13 +26,18 @@ class ListContents(Vertical, can_focus=True):
     async def refresh_content(self, new_list_info):
         # self.app.notify("Refreshing list content...")
         try:
+            if not new_list_info.get("id"):
+                return
+
             self.list_info = new_list_info
 
-            list_info_str = f"List Name: {self.list_info.get('name')}\nLast Updated: {self.list_info.get('last_updated')}"
+            list_info_str = f"List Name: {self.list_info.get('name'), ''}\nLast Updated: {self.list_info.get('last_updated'), ''}"
 
             self.query_one("#list-info").update(list_info_str)
 
-            new_items = get_list_items(self.app.db, self.list_info["id"])
+            new_items = database.get_list_items(
+                self.app.db, self.list_info.get("id", "")
+            )
             #
             list_view = self.query_one("#list-contents-items")
 
@@ -42,4 +48,4 @@ class ListContents(Vertical, can_focus=True):
             # self.app.notify("List contents updated")
 
         except Exception as e:
-            self.app.notify(str(e))
+            self.app.notify(str(e), severity="warning")

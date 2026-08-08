@@ -8,7 +8,4 @@ class ListItem(TextualListItem):
         self.item_data = item_data
 
     def compose(self):
-        if self.item_data.get("name"):
-            yield Label(self.item_data["name"])
-        elif self.item_data.get("title"):
-            yield Label(self.item_data["title"])
+        yield Label(self.item_data.get("name", ""))
