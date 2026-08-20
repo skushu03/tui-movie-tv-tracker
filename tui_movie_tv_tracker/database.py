@@ -127,10 +127,10 @@ def get_list_items(db, list_id):
     try:
         cursor = db.cursor()
 
-        query = """SELECT mi.title, mi.tmdb_id, mi.rating, mi.release_date, mi.media_type
+        query = """SELECT mi.title, mi.tmdb_id, mi.rating, mi.release_date, mi.media_type, mi.num_ratings
         FROM media_info mi JOIN list_items li 
         ON mi.tmdb_id = li.tmdb_id 
-        WHERE li.list_id = ?
+        WHERE li.list_id = ? AND mi.media_type = li.media_type
         """
 
         cursor.execute(query, (list_id,))
@@ -146,6 +146,7 @@ def get_list_items(db, list_id):
                     "release_date": r["release_date"],
                     "media_type": r["media_type"],
                     "rating": r["rating"],
+                    "num_ratings": r["num_ratings"],
                 }
             )
 
@@ -383,5 +384,32 @@ def delete_list_item(db, media_data, list_id):
         raise Exception(f"Database Error while adding an item to a list: {e}")
     except Exception as e:
         raise Exception(f"Unexpected Error while adding item to list: {e}")
+    finally:
+        cursor.close()
+
+
+def get_media_info(db, tmdb_id, media_type):
+    try:
+        cursor = db.cursor()
+
+        query = "SELECT mi.title, mi.rating, mi.num_ratings, mi.media_type, mi.release_date FROM media_info mi WHERE mi.tmdb_id = ? AND mi.media_type = ?"
+
+        cursor.execute(query, (tmdb_id, media_type))
+
+        res = cursor.fetchone()
+
+        if res:
+            return {
+                "title": res["title"],
+                "release_date": res["release_date"],
+                "rating": res["rating"],
+                "num_ratings": res["num_ratings"],
+                "media_type": res["media_type"],
+            }
+        return {}
+    except sqlite.Error as e:
+        raise Exception(f"Database Error while getting media info: {e}")
+    except Exception as e:
+        raise Exception(f"Unexpected Error while getting media info: {e}")
     finally:
         cursor.close()

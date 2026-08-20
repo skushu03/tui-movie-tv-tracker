@@ -7,9 +7,9 @@ from textual.screen import Screen
 from textual.widgets import Static
 
 from tui_movie_tv_tracker import database
-from tui_movie_tv_tracker.input_modal import InputModal
 from tui_movie_tv_tracker.list_contents import ListContents
 from tui_movie_tv_tracker.lists import Lists
+from tui_movie_tv_tracker.media_details import MediaDetails
 from tui_movie_tv_tracker.search_screen import SearchScreen
 
 
@@ -36,7 +36,7 @@ class MainScreen(Screen):
                 ListContents(
                     {}, "List Info", id="list-contents", classes="pane-window"
                 ),
-                Pane("Media Info", classes="pane-window"),
+                MediaDetails({}, id="media-details", classes="pane-window"),
             ),
             Horizontal(Pane("year_month_stats"), Pane("diary")),
         )
@@ -80,7 +80,9 @@ class MainScreen(Screen):
         selected_item = event.item
 
         if origin_id == "list-contents-items":
-            self.app.notify(str(selected_item.item_data))
+            # self.app.notify(str(selected_item.item_data))
+            # return
+            self.query_one("#media-details").refresh_data(selected_item.item_data)
 
     def action_show_search_screen(self):
         async def update_lists(message):
