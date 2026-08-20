@@ -43,6 +43,18 @@ InputModal, ChecklistModal {
 	padding: 0 1;
 }
 
+#lists{
+	padding: 0 1;
+	min-width: 40;
+	width: 0.5fr;
+}
+ListContents > MediaList {
+	border-top: white white;
+}
+
+ListContents > MediaList:focus-within {
+	border-top: solid blue;
+}
 /* search screen*/
 #search-screen-container {
 	padding: 2 3;
@@ -68,25 +80,21 @@ InputModal, ChecklistModal {
 	opacity: 1;
 }
 
-ResultsList, LoadingIndicator {
+SearchResultsList, LoadingIndicator {
 	background: transparent;
 }
 
 
-.result-item-row {
+#search-results-header, SearchResultItem, MediaItem {
 	height: 1;
 }
 
-.result-item-row > Static{
+#search-results-header , SearchResultItem Static, MediaItem Static{
 	width: 1fr;
 }
 
 .media-item-watched {
 	color: green;
-}
-
-.result-item-row > Static:first-child{
-	min-width: 3;
 }
 
 .checklist-view{

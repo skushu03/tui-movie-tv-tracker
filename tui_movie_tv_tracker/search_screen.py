@@ -1,18 +1,17 @@
 import asyncio
 
-from httpx import ConnectError
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import DataTable, Input, Label, ListView, Static
+from textual.widgets import Input, Label, Static
 from textual.widgets import ListItem as TextualListItem
 
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker import tmdb
+from tui_movie_tv_tracker.base_widgets.list_view import ListView
 from tui_movie_tv_tracker.checklist_modal import ChecklistModal
-from tui_movie_tv_tracker.list_item import ListItem
 
 
-class ResultsList(ListView):
+class SearchResultsList(ListView):
     BINDINGS = [
         ("j", "nav_down", "Navigate down"),
         ("J", "nav_down", "Navigate down"),
@@ -51,14 +50,23 @@ class ResultsList(ListView):
         # self.app.notify(str(lists[0]))
         def update_lists(changes):
             # self.app.notify(str(changes))
-            for key, value in changes.items():
+            selected_item_data = self.highlighted_child.item_data
+            for list_id, value in changes.items():
                 if not value:
                     continue
                 else:
                     if value == 1:
-                        database.add_list_item()
+                        database.add_list_item(
+                            self.app.db,
+                            selected_item_data,
+                            list_id,
+                        )
                     elif value == -1:
-                        database.delete_list_item()
+                        database.delete_list_item(
+                            self.app.db,
+                            selected_item_data,
+                            list_id,
+                        )
 
         self.app.push_screen(ChecklistModal("Lists", lists), update_lists)
         # self.app.notify(
@@ -67,7 +75,7 @@ class ResultsList(ListView):
         # )
 
 
-class ResultItem(TextualListItem):
+class SearchResultItem(TextualListItem):
     def __init__(self, item_data, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.item_data = item_data
@@ -88,6 +96,7 @@ class SearchScreen(Screen):
         ("s", "search_focus", "Search input focus"),
         ("S", "search_focus", "Search input focus"),
         ("tab", "switch_media", "Switch media type for search"),
+        ("escape", "close", "Close search screen"),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -114,9 +123,9 @@ class SearchScreen(Screen):
                         Static("TITLE"),
                         Static("RELEASE DATE"),
                         Static("RATING"),
-                        classes="result-item-row",
+                        id="search-results-header",
                     ),
-                    ResultsList(*self.results, id="search-results"),
+                    SearchResultsList(*self.results, id="search-results"),
                     id="search-results-container",
                 ),
             ),
@@ -153,7 +162,7 @@ class SearchScreen(Screen):
                 else:
                     res["watched"] = False
 
-            self.results = [ResultItem(res) for res in search_results]
+            self.results = [SearchResultItem(res) for res in search_results]
 
             await results_view.clear()
             await results_view.extend(self.results)
@@ -196,5 +205,5 @@ class SearchScreen(Screen):
             self.run_worker(self.start_search(), exclusive=True)
         # self.app.notify("testing")
 
-    def key_escape(self):
-        self.dismiss("Search closed")
+    def action_close(self):
+        self.dismiss()

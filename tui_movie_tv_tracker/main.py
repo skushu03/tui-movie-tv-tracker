@@ -1,6 +1,6 @@
 import asyncio
 
-from textual import on
+from textual import events, on
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -20,11 +20,8 @@ class Pane(Static):
 
 class MainScreen(Screen):
     BINDINGS = [
-        ("tab", "switch_focus", "Switch focused pane"),
-        ("a", "create_list", "Create new list"),
-        ("A", "create_list", "Create new list"),
-        ("d", "delete_list", "Delete list"),
-        ("D", "delete_list", "Delete list"),
+        ("tab", "next_focus", "Switch focus to next pane"),
+        ("shift+tab", "prev_focus", "Switch focus to previous pane"),
         ("s", "show_search_screen", "Display search screen"),
         ("S", "show_search_screen", "Display search screen"),
     ]
@@ -39,7 +36,7 @@ class MainScreen(Screen):
                 ListContents(
                     {}, "List Info", id="list-contents", classes="pane-window"
                 ),
-                Pane("Media Info"),
+                Pane("Media Info", classes="pane-window"),
             ),
             Horizontal(Pane("year_month_stats"), Pane("diary")),
         )
@@ -51,65 +48,50 @@ class MainScreen(Screen):
             selected_list.item_data if selected_list else {}
         )
 
+    def action_next_focus(self):
+        # self.app.notify(str(self.focused.id))
+        if self.focused.id == "lists":
+            self.query_one("#list-contents-items").focus()
+        elif self.focused.id == "list-contents-items":
+            self.query_one("#lists").focus()
+
+    def action_prev_focus(self):
+        if self.focused.id == "lists":
+            self.query_one("#list-contents-items").focus()
+        elif self.focused.id == "list-contents-items":
+            self.query_one("#lists").focus()
+
     @on(Lists.Selected, "#lists")
     async def list_selected(self, event):
         origin_id = event.list_view.id
         selected_item = event.item
+
+        lists_widget = self.query_one("#lists")
+        lists_widget.selected_item = lists_widget.children[lists_widget.index]
 
         if origin_id == "lists":
             await self.query_one("#list-contents").refresh_content(
                 selected_item.item_data
             )
 
-    def action_switch_focus(self):
-        if self.focused.id == "lists":
-            self.query_one("#list-contents").focus()
-        elif self.focused.id == "list-contents":
-            self.query_one("#lists").focus()
+    @on(Lists.Selected, "#list-contents-items")
+    def list_item_selected(self, event):
+        origin_id = event.list_view.id
+        selected_item = event.item
 
-    async def action_create_list(self):
-        async def handle_create_list(list_name):
-            # if not list_name:
-            #     return
-            try:
-                database.create_list(self.app.db, list_name)
-                await self.query_one("#lists").refresh_list()
-            except Exception as e:
-                self.app.notify(str(e), severity="warning")
-
-        await self.app.push_screen(
-            InputModal("Enter list name:", 36), callback=handle_create_list
-        )
-
-    async def action_delete_list(self):
-        async def handle_delete_list(confirmation):
-            if confirmation not in ("y", "Y"):
-                return
-
-            try:
-                selected_list_name = self.query_one(Lists).highlighted_child.item_data[
-                    "name"
-                ]
-                database.delete_list(self.app.db, selected_list_name)
-
-                await self.query_one("#lists").refresh_list()
-
-            except Exception as e:
-                self.app.notify(str(e), severity="warning")
-
-        await self.app.push_screen(
-            InputModal(
-                "Are you sure you want to delete this list? (y/N)",
-                1,
-            ),
-            callback=handle_delete_list,
-        )
+        if origin_id == "list-contents-items":
+            self.app.notify(str(selected_item.item_data))
 
     def action_show_search_screen(self):
-        def temp_callback(message):
-            self.app.notify(message)
+        async def update_lists(message):
+            lists_widget = self.query_one("#lists")
 
-        self.app.push_screen(SearchScreen(), callback=temp_callback)
+            await lists_widget.refresh_list()
+            await self.query_one("#list-contents").refresh_content(
+                lists_widget.selected_item.item_data
+            )
+
+        self.app.push_screen(SearchScreen(), callback=update_lists)
 
 
 class LayoutApp(App):

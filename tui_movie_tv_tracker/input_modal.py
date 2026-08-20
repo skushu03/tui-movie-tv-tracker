@@ -1,3 +1,4 @@
+from textual import on
 from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Input, Label
@@ -22,7 +23,8 @@ class InputModal(ModalScreen):
         # focused when modla pops up
         self.query_one(".modal-input").focus()
 
-    def on_input_submitted(self, event):
+    @on(Input.Submitted, ".modal-input")
+    def input_submitted(self, event):
         if event.value.strip():
             # Close the modal and send the string value back to the main screen
             self.dismiss(event.value.strip()[: self.max_len])

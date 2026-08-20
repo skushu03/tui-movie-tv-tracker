@@ -141,10 +141,11 @@ def get_list_items(db, list_id):
         for r in results:
             list_items.append(
                 {
-                    "name": r["title"],
+                    "title": r["title"],
                     "tmdb_id": r["tmdb_id"],
                     "release_date": r["release_date"],
                     "media_type": r["media_type"],
+                    "rating": r["rating"],
                 }
             )
 
@@ -225,6 +226,8 @@ def get_watched(db):
             watched.append((res["tmdb_id"], res["media_type"]))
 
         return set(watched)
+    except sqlite.Error as e:
+        raise Exception(f"Database Error while getting watched media: {e}")
     except Exception as e:
         raise Exception(f"Unexpected Error while getting watched media: {e}")
     finally:
@@ -262,6 +265,10 @@ def add_diary_entry(db, data, watched_set):
 
         watched_set.add((data["tmdb_id"], data["media_type"]))
 
+    except sqlite.IntegrityError as e:
+        raise Exception(f"Database conflict: {e}")
+    except sqlite.Error as e:
+        raise Exception(f"Database Error while creating a new diary entry: {e}")
     except Exception as e:
         raise Exception(f"Unexpected Error while adding diary entry: {e}")
     finally:
@@ -287,6 +294,8 @@ def remove_diary_entry(db, data, watched_set):
         if len(results) == 1:
             watched_set.remove((data["tmdb_id"], data["media_type"]))
 
+    except sqlite.Error as e:
+        raise Exception(f"Database Error while deleting a diary entry: {e}")
     except Exception as e:
         raise Exception(f"Unexpected Error while removing diary entry: {e}")
     finally:
@@ -303,7 +312,6 @@ def search_media_in_list(db, media_type, tmdb_id, list_id, app):
         cursor.execute(query, (media_type, tmdb_id, list_id))
 
         if cursor.fetchone():
-            app.notify("dafuq")
             return True
 
         return False
@@ -314,10 +322,65 @@ def search_media_in_list(db, media_type, tmdb_id, list_id, app):
         cursor.close()
 
 
-def add_list_item(db, media_type, tmdb_id, list_id):
+def add_list_item(db, media_data, list_id):
     try:
         cursor = db.cursor()
 
+        # check if media_info entry/row exists for this media
+        query = "SELECT 1 FROM media_info WHERE tmdb_id = ? AND media_type = ?"
+        cursor.execute(query, (media_data["tmdb_id"], media_data["media_type"]))
+
+        if not cursor.fetchone():
+            query = "INSERT INTO media_info (title, tmdb_id, rating, num_ratings, release_date, media_type) VALUES (?, ?, ?, ?, ?, ?)"
+
+            cursor.execute(
+                query,
+                (
+                    media_data["title"],
+                    media_data["tmdb_id"],
+                    media_data["rating"],
+                    media_data["num_ratings"],
+                    media_data["release_date"],
+                    media_data["media_type"],
+                ),
+            )
+        # tmdb, list med
+        query = "INSERT INTO list_items (tmdb_id, list_id, media_type) VALUES (?, ?, ?) ON CONFLICT (tmdb_id, list_id, media_type) DO NOTHING"
+
+        cursor.execute(
+            query, (media_data["tmdb_id"], list_id, media_data["media_type"])
+        )
+
+        db.commit()
+
+    except sqlite.IntegrityError as e:
+        raise Exception(f"Database conflict: {e}")
+    except sqlite.Error as e:
+        raise Exception(f"Database Error while adding an item to a list: {e}")
+    except Exception as e:
+        raise Exception(f"Unexpected Error while adding item to list: {e}")
+    finally:
+        cursor.close()
+
+
+def delete_list_item(db, media_data, list_id):
+    try:
+        cursor = db.cursor()
+        # tmdb, list med
+        query = (
+            "DELETE FROM list_items WHERE tmdb_id = ? AND list_id = ? AND media_type =?"
+        )
+
+        cursor.execute(
+            query, (media_data["tmdb_id"], list_id, media_data["media_type"])
+        )
+
+        db.commit()
+
+    except sqlite.IntegrityError as e:
+        raise Exception(f"Database conflict: {e}")
+    except sqlite.Error as e:
+        raise Exception(f"Database Error while adding an item to a list: {e}")
     except Exception as e:
         raise Exception(f"Unexpected Error while adding item to list: {e}")
     finally:

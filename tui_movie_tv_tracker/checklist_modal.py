@@ -1,18 +1,15 @@
-import copy
-
+from textual import on
 from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Input, Label
 from textual.widgets import ListItem as TextualListItem
 from textual.widgets import ListView as TextualListView
 
+from tui_movie_tv_tracker.base_widgets.list_view import ListView
 
-class Checklist(TextualListView):
+
+class Checklist(ListView):
     BINDINGS = [
-        ("j", "nav_down", "Navigate down"),
-        ("J", "nav_down", "Navigate down"),
-        ("k", "nav_up", "Navigate Up"),
-        ("K", "nav_up", "Navigate Up"),
         ("space", "toggle_select", "Toggle item select"),
     ]
 
@@ -21,34 +18,31 @@ class Checklist(TextualListView):
         self.lists = lists
         self.changes = {}  # list_name: -1, 0, 1
 
-    def action_nav_down(self):
-        self.index += 1
-
-    def action_nav_up(self):
-        self.index -= 1
-
     def action_toggle_select(self):
         self.highlighted_child.item_data[
             "contains"
         ] = not self.highlighted_child.item_data["contains"]
 
-        selected_list_name = self.highlighted_child.item_data["name"]
+        selected_list_id = self.highlighted_child.item_data["id"]
 
-        if self.changes.get(selected_list_name):
-            self.changes[selected_list_name] = 0
+        if self.changes.get(selected_list_id):
+            self.changes[selected_list_id] = 0
         else:
             if self.highlighted_child.item_data["contains"]:
-                self.changes[selected_list_name] = 1
+                self.changes[selected_list_id] = 1
             else:
-                self.changes[selected_list_name] = -1
+                self.changes[selected_list_id] = -1
 
         highlighted_label = self.highlighted_child.query_one("Label")
 
         highlighted_label.update(
-            f"\[x] {selected_list_name}"
+            f"\[x] {self.highlighted_child.item_data['name']}"
             if self.highlighted_child.item_data["contains"]
-            else f"\[ ] {selected_list_name}"
+            else f"\[ ] {self.highlighted_child.item_data['name']}"
         )
+
+    def action_apply_and_exit(self):
+        self.app.notify("here")
 
 
 class ListItem(TextualListItem):
@@ -67,7 +61,6 @@ class ListItem(TextualListItem):
 class ChecklistModal(ModalScreen):
     BINDINGS = [
         ("escape", "exit", "Close modal without saving changes"),
-        ("enter", "apply_and_exit", "Close modal and save changes"),
     ]
 
     def __init__(self, prompt, lists, *args, **kwargs):
@@ -90,9 +83,10 @@ class ChecklistModal(ModalScreen):
     def on_mount(self):
         self.query_one(".checklist-view").focus()
 
+    @on(Checklist.Selected, "Checklist")
+    def apply_and_exit(self):
+        self.dismiss(self.query_one("Checklist").changes)
+
     def action_exit(self):
         # self.app.notify(str(self.lists))
         self.dismiss({})
-
-    def action_apply_and_exit(self):
-        self.dismiss(self.query_one("Checklist").changes)

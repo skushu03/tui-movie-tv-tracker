@@ -1,27 +1,32 @@
-from textual.widgets import ListView
+from textual.widgets import Label
+from textual.widgets import ListItem as TextualListItem
 
-from .database import get_lists
-from .list_item import ListItem
+import tui_movie_tv_tracker.database as database
+from tui_movie_tv_tracker.base_widgets.list_view import ListView
+from tui_movie_tv_tracker.input_modal import InputModal
+
+
+class ListItem(TextualListItem):
+    def __init__(self, item_data, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.item_data = item_data
+
+    def compose(self):
+        yield Label(self.item_data.get("name", ""))
 
 
 class Lists(ListView):
     BINDINGS = [
-        ("j", "nav_down", "Navigate down"),
-        ("J", "nav_down", "Navigate down"),
-        ("k", "nav_up", "Navigate Up"),
-        ("K", "nav_up", "Navigate Up"),
+        ("a", "create_list", "Create new list"),
+        ("A", "create_list", "Create new list"),
+        ("d", "delete_list", "Delete list"),
+        ("D", "delete_list", "Delete list"),
     ]
 
     def __init__(self, pane_title, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pane_title = pane_title
         self.selected_item = None
-
-    def action_nav_down(self):
-        self.index += 1
-
-    def action_nav_up(self):
-        self.index -= 1
 
     async def on_mount(self):
         self.border_title = self.pane_title
@@ -36,7 +41,7 @@ class Lists(ListView):
             old_index = self.index
             await self.clear()
 
-            new_items = get_lists(self.app.db)
+            new_items = database.get_lists(self.app.db)
 
             new_widgets = [ListItem(n) for n in new_items]
 
@@ -53,3 +58,41 @@ class Lists(ListView):
 
         except Exception as e:
             self.app.notify(str(e), severity="warning")
+
+    async def action_create_list(self):
+        async def handle_create_list(list_name):
+            # if not list_name:
+            #     return
+            try:
+                database.create_list(self.app.db, list_name)
+                await self.refresh_list()
+            except Exception as e:
+                self.app.notify(str(e), severity="warning")
+
+        await self.app.push_screen(
+            InputModal("Enter list name:", 36), callback=handle_create_list
+        )
+
+    async def action_delete_list(self):
+        async def handle_delete_list(confirmation):
+            if confirmation not in ("y", "Y"):
+                return
+
+            try:
+                selected_list_name = self.query_one(Lists).highlighted_child.item_data[
+                    "name"
+                ]
+                database.delete_list(self.app.db, selected_list_name)
+
+                await self.refresh_list()
+
+            except Exception as e:
+                self.app.notify(str(e), severity="warning")
+
+        await self.app.push_screen(
+            InputModal(
+                "Are you sure you want to delete this list? (y/N)",
+                1,
+            ),
+            callback=handle_delete_list,
+        )

@@ -68,7 +68,7 @@ async def search_show(query):
                     "rating": str(round(res["vote_average"], 1)),
                     "num_ratings": res["vote_count"],
                     "release_date": res["first_air_date"],
-                    "media_type": "movie",
+                    "media_type": "tv",
                 }
             )
 
