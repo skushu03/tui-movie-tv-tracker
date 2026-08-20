@@ -8,6 +8,7 @@ from textual.widgets import ListItem as TextualListItem
 
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker import tmdb
+from tui_movie_tv_tracker.checklist_modal import ChecklistModal
 from tui_movie_tv_tracker.list_item import ListItem
 
 
@@ -19,8 +20,9 @@ class ResultsList(ListView):
         ("K", "nav_up", "Navigate Up"),
         ("a", "add", "Add to list"),
         ("A", "add", "Add to list"),
-        ("w", "toggle_watched", "Toggle watched status"),
+        # ("w", "toggle_watched", "Toggle watched status"),
         # ("W", "toggle_watched", "Toggle watched status"), this is for if they want to say they watched again
+        # to delete entry theyd have to go to the diary pane
     ]
 
     def action_nav_down(self):
@@ -30,15 +32,39 @@ class ResultsList(ListView):
         self.index -= 1
 
     def action_add(self):
-        self.app.notify(
-            str(self.children[self.index].item_data["tmdb_id"])
-            + str(self.children[self.index].item_data["media_type"])
-        )
+        lists = database.get_lists(self.app.db)
 
-    def action_toggle_watched(self):
-        pass
-        # database.add_diary_entry(self.app.db, self.children[self.index].item_data)
-        # self.children[self.index].refresh(recompose=True)
+        selected_item_data = self.children[self.index].item_data
+
+        for li in lists:
+            if database.search_media_in_list(
+                self.app.db,
+                selected_item_data["media_type"],
+                selected_item_data["tmdb_id"],
+                li["id"],
+                self.app,
+            ):
+                li["contains"] = True
+            else:
+                li["contains"] = False
+
+        # self.app.notify(str(lists[0]))
+        def update_lists(changes):
+            # self.app.notify(str(changes))
+            for key, value in changes.items():
+                if not value:
+                    continue
+                else:
+                    if value == 1:
+                        database.add_list_item()
+                    elif value == -1:
+                        database.delete_list_item()
+
+        self.app.push_screen(ChecklistModal("Lists", lists), update_lists)
+        # self.app.notify(
+        #     str(self.children[self.index].item_data["tmdb_id"])
+        #     + str(self.children[self.index].item_data["media_type"])
+        # )
 
 
 class ResultItem(TextualListItem):

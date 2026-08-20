@@ -4,6 +4,8 @@ from textual.widgets import Input, Label
 
 
 class InputModal(ModalScreen):
+    BINDINGS = [("escape", "close", "Close modal")]
+
     def __init__(self, prompt, max_len, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prompt = prompt
@@ -12,13 +14,13 @@ class InputModal(ModalScreen):
     def compose(self):
         yield Vertical(
             Label(self.prompt),
-            Input(id="modal-input", max_length=self.max_len),
-            id="modal-container",
+            Input(classes="modal-input", max_length=self.max_len),
+            classes="modal-container",
         )
 
     def on_mount(self):
         # focused when modla pops up
-        self.query_one("#modal-input").focus()
+        self.query_one(".modal-input").focus()
 
     def on_input_submitted(self, event):
         if event.value.strip():
@@ -27,6 +29,5 @@ class InputModal(ModalScreen):
         else:
             self.dismiss("")
 
-    def on_key(self, event):
-        if event.key == "escape":
-            self.dismiss("")
+    def action_close(self):
+        self.dismiss("")

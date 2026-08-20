@@ -7,8 +7,6 @@ from .list_item import ListItem
 
 
 class ListContents(Vertical, can_focus=True):
-    DEFAULT_CLASSES = "pane-window"
-
     def __init__(self, list_info, pane_title, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pane_title = pane_title
@@ -31,7 +29,7 @@ class ListContents(Vertical, can_focus=True):
 
             self.list_info = new_list_info
 
-            list_info_str = f"List Name: {self.list_info.get('name'), ''}\nLast Updated: {self.list_info.get('last_updated'), ''}"
+            list_info_str = f"List Name: {self.list_info.get('name', '')}\nLast Updated: {self.list_info.get('last_updated', '')}"
 
             self.query_one("#list-info").update(list_info_str)
 

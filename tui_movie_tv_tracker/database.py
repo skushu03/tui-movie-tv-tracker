@@ -20,7 +20,7 @@ def init_db(db):
         CREATE TABLE IF NOT EXISTS media_info(
             title TEXT NOT NULL,
             tmdb_id INTEGER PRIMARY KEY ,
-            rating INTEGER NOT NULL,
+            rating TEXT NOT NULL,
             num_ratings INTEGER NOT NULL,
             release_date TEXT NOT NULL,
             media_type TEXT NOT NULL
@@ -127,7 +127,7 @@ def get_list_items(db, list_id):
     try:
         cursor = db.cursor()
 
-        query = """SELECT mi.name, mi.tmdb_id, mi.rating, mi.release_date, mi.media_type
+        query = """SELECT mi.title, mi.tmdb_id, mi.rating, mi.release_date, mi.media_type
         FROM media_info mi JOIN list_items li 
         ON mi.tmdb_id = li.tmdb_id 
         WHERE li.list_id = ?
@@ -141,7 +141,7 @@ def get_list_items(db, list_id):
         for r in results:
             list_items.append(
                 {
-                    "name": r["name"],
+                    "name": r["title"],
                     "tmdb_id": r["tmdb_id"],
                     "release_date": r["release_date"],
                     "media_type": r["media_type"],
@@ -231,7 +231,7 @@ def get_watched(db):
         cursor.close()
 
 
-def add_diary_entry(db, data):
+def add_diary_entry(db, data, watched_set):
     try:
         cursor = db.cursor()
         # chcek if media info alreday in db
@@ -260,8 +260,65 @@ def add_diary_entry(db, data):
 
         db.commit()
 
+        watched_set.add((data["tmdb_id"], data["media_type"]))
+
     except Exception as e:
         raise Exception(f"Unexpected Error while adding diary entry: {e}")
     finally:
         cursor.close()
-    pass
+
+
+def remove_diary_entry(db, data, watched_set):
+    try:
+        cursor = db.cursor()
+        # check for multiple entries for the same show, if there are multiple, dont remove from set
+
+        query = "SELECT date FROM diary WHERE tmdb_id = ? AND media_type = ?"
+
+        cursor.execute(query, (data["tmdb_id"], data["media_type"]))
+        results = cursor.fetchall()
+
+        query = "DELETE FROM diary WHERE tmdb_id = ? AND media_type = ? AND date = ?"
+
+        cursor.execute(query, (data["tmdb_id"], data["media_type"], data["date"]))
+
+        db.commit()
+
+        if len(results) == 1:
+            watched_set.remove((data["tmdb_id"], data["media_type"]))
+
+    except Exception as e:
+        raise Exception(f"Unexpected Error while removing diary entry: {e}")
+    finally:
+        cursor.close()
+
+
+def search_media_in_list(db, media_type, tmdb_id, list_id, app):
+    # check if media is in given list
+    try:
+        cursor = db.cursor()
+
+        query = "SELECT tmdb_id FROM list_items WHERE media_type = ? AND tmdb_id = ? AND list_id = ?"
+
+        cursor.execute(query, (media_type, tmdb_id, list_id))
+
+        if cursor.fetchone():
+            app.notify("dafuq")
+            return True
+
+        return False
+
+    except Exception as e:
+        raise Exception(f"Unexpected Error searching list for media: {e}")
+    finally:
+        cursor.close()
+
+
+def add_list_item(db, media_type, tmdb_id, list_id):
+    try:
+        cursor = db.cursor()
+
+    except Exception as e:
+        raise Exception(f"Unexpected Error while adding item to list: {e}")
+    finally:
+        cursor.close()

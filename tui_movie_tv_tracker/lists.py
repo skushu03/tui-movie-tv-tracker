@@ -5,7 +5,6 @@ from .list_item import ListItem
 
 
 class Lists(ListView):
-    DEFAULT_CLASSES = "pane-window"
     BINDINGS = [
         ("j", "nav_down", "Navigate down"),
         ("J", "nav_down", "Navigate down"),

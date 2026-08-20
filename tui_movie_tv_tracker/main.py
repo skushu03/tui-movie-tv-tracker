@@ -1,5 +1,6 @@
 import asyncio
 
+from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -34,8 +35,10 @@ class MainScreen(Screen):
     def compose(self):
         yield Vertical(
             Horizontal(
-                Lists("Lists", *[], id="lists"),
-                ListContents({}, "List Info", id="list-contents"),
+                Lists("Lists", *[], id="lists", classes="pane-window"),
+                ListContents(
+                    {}, "List Info", id="list-contents", classes="pane-window"
+                ),
                 Pane("Media Info"),
             ),
             Horizontal(Pane("year_month_stats"), Pane("diary")),
@@ -48,7 +51,8 @@ class MainScreen(Screen):
             selected_list.item_data if selected_list else {}
         )
 
-    async def on_list_view_selected(self, event):
+    @on(Lists.Selected, "#lists")
+    async def list_selected(self, event):
         origin_id = event.list_view.id
         selected_item = event.item
 
@@ -58,9 +62,9 @@ class MainScreen(Screen):
             )
 
     def action_switch_focus(self):
-        if self.focused and self.focused.id == "lists":
+        if self.focused.id == "lists":
             self.query_one("#list-contents").focus()
-        elif self.focused and self.focused.id == "list-contents":
+        elif self.focused.id == "list-contents":
             self.query_one("#lists").focus()
 
     async def action_create_list(self):
@@ -115,7 +119,8 @@ class LayoutApp(App):
         self.ansi_color = True
         self.db = database.get_db()
         self.watched = database.get_watched(self.db)
-        self.notify(str(self.watched))
+        # self.lists = set(database.get_lists(self.db))
+        # self.notify(str(self.watched))
         if not self.db:
             self.dismiss("")
         self.push_screen(MainScreen(self.db))
