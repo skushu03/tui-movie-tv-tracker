@@ -25,7 +25,7 @@ Pane {
 	background: transparent;
 }
 
-InputModal, ChecklistModal {
+ModalScreen {
 	align: center middle;
 	background: rgba(0, 0, 0, 0.5); 
 }
@@ -102,4 +102,13 @@ SearchResultsList, LoadingIndicator {
 	height: auto;
 	border-top: double blue;
 	max-height: 20;
+}
+
+#search-details-modal {
+	padding: 0 1;
+	background: rgba(8, 2, 59, 1)
+}
+
+#search-details-modal > Static:last-child {
+	margin: 1 0 0 0;
 }

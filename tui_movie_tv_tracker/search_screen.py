@@ -1,5 +1,6 @@
 import asyncio
 
+from textual import on
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import Input, Label, Static
@@ -9,26 +10,17 @@ import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker import tmdb
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
 from tui_movie_tv_tracker.checklist_modal import ChecklistModal
+from tui_movie_tv_tracker.modals.media_details_modal import MediaDetailsModal
 
 
 class SearchResultsList(ListView):
     BINDINGS = [
-        ("j", "nav_down", "Navigate down"),
-        ("J", "nav_down", "Navigate down"),
-        ("k", "nav_up", "Navigate Up"),
-        ("K", "nav_up", "Navigate Up"),
         ("a", "add", "Add to list"),
         ("A", "add", "Add to list"),
         # ("w", "toggle_watched", "Toggle watched status"),
         # ("W", "toggle_watched", "Toggle watched status"), this is for if they want to say they watched again
         # to delete entry theyd have to go to the diary pane
     ]
-
-    def action_nav_down(self):
-        self.index += 1
-
-    def action_nav_up(self):
-        self.index -= 1
 
     def action_add(self):
         lists = database.get_lists(self.app.db)
@@ -41,38 +33,32 @@ class SearchResultsList(ListView):
                 selected_item_data["media_type"],
                 selected_item_data["tmdb_id"],
                 li["id"],
-                self.app,
             ):
                 li["contains"] = True
             else:
                 li["contains"] = False
 
-        # self.app.notify(str(lists[0]))
         def update_lists(changes):
+            if not changes:
+                return
             # self.app.notify(str(changes))
-            selected_item_data = self.highlighted_child.item_data
             for list_id, value in changes.items():
-                if not value:
-                    continue
-                else:
-                    if value == 1:
-                        database.add_list_item(
-                            self.app.db,
-                            selected_item_data,
-                            list_id,
-                        )
-                    elif value == -1:
-                        database.delete_list_item(
-                            self.app.db,
-                            selected_item_data,
-                            list_id,
-                        )
+                if value == 1:
+                    database.add_list_item(
+                        self.app.db,
+                        selected_item_data,
+                        list_id,
+                    )
+                    self.screen.lists_updated = True
+                elif value == -1:
+                    database.delete_list_item(
+                        self.app.db,
+                        selected_item_data,
+                        list_id,
+                    )
+                    self.screen.lists_updated = True
 
         self.app.push_screen(ChecklistModal("Lists", lists), update_lists)
-        # self.app.notify(
-        #     str(self.children[self.index].item_data["tmdb_id"])
-        #     + str(self.children[self.index].item_data["media_type"])
-        # )
 
 
 class SearchResultItem(TextualListItem):
@@ -107,6 +93,8 @@ class SearchScreen(Screen):
         self.curr_page = 0
         self.num_pages = 0
 
+        self.lists_updated = False
+
     def compose(self):
         yield Vertical(
             Label("Search:"),
@@ -125,7 +113,7 @@ class SearchScreen(Screen):
                         Static("RATING"),
                         id="search-results-header",
                     ),
-                    SearchResultsList(*self.results, id="search-results"),
+                    SearchResultsList(*self.results, id="search-results-list"),
                     id="search-results-container",
                 ),
             ),
@@ -148,7 +136,7 @@ class SearchScreen(Screen):
 
     async def start_search(self):
         try:
-            results_view = self.query_one("#search-results")
+            results_view = self.query_one("#search-results-list")
 
             results_view.loading = True
             # await asyncio.sleep(1)  # temp
@@ -183,10 +171,24 @@ class SearchScreen(Screen):
         finally:
             results_view.loading = False
 
-    async def on_input_submitted(self, event):
+    @on(Input.Submitted, "#search-input")
+    async def handle_input_submitted(self, event):
         self.search_query = event.value.strip()
         if self.search_query:
             self.run_worker(self.start_search(), exclusive=True)
+
+    @on(SearchResultsList.Selected, "#search-results-list")
+    def handle_search_result_selected(self, event):
+        selected_item = event.item
+
+        def set_lists_updated(lists_updated):
+            self.lists_updated = lists_updated or self.lists_updated
+
+        self.app.push_screen(
+            MediaDetailsModal(selected_item.item_data), set_lists_updated
+        )
+
+        # self.app.notify(str(selected_item.item_data))
 
     def action_search_focus(self):
         self.query_one("#search-input").focus()
@@ -206,4 +208,4 @@ class SearchScreen(Screen):
         # self.app.notify("testing")
 
     def action_close(self):
-        self.dismiss()
+        self.dismiss(self.lists_updated)

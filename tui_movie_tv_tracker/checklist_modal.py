@@ -3,7 +3,6 @@ from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Input, Label
 from textual.widgets import ListItem as TextualListItem
-from textual.widgets import ListView as TextualListView
 
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
 
@@ -16,7 +15,7 @@ class Checklist(ListView):
     def __init__(self, lists, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.lists = lists
-        self.changes = {}  # list_name: -1, 0, 1
+        self.changes = {}  # list_id: -1, 0, 1
 
     def action_toggle_select(self):
         self.highlighted_child.item_data[

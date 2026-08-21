@@ -44,22 +44,24 @@ class MainScreen(Screen):
     async def on_mount(self):
         selected_list = self.query_one("#lists").selected_item
 
-        await self.query_one("#list-contents").refresh_content(
-            selected_list.item_data if selected_list else {}
-        )
+        await self.query_one("#list-contents").refresh_content(selected_list.item_data)
 
     def action_next_focus(self):
         # self.app.notify(str(self.focused.id))
         if self.focused.id == "lists":
             self.query_one("#list-contents-items").focus()
         elif self.focused.id == "list-contents-items":
+            self.query_one("#media-details").focus()
+        elif self.focused.id == "media-details":
             self.query_one("#lists").focus()
 
     def action_prev_focus(self):
         if self.focused.id == "lists":
-            self.query_one("#list-contents-items").focus()
+            self.query_one("#media-details").focus()
         elif self.focused.id == "list-contents-items":
             self.query_one("#lists").focus()
+        elif self.focused.id == "media-details":
+            self.query_one("#list-contents-items").focus()
 
     @on(Lists.Selected, "#lists")
     async def list_selected(self, event):
@@ -85,10 +87,13 @@ class MainScreen(Screen):
             self.query_one("#media-details").refresh_data(selected_item.item_data)
 
     def action_show_search_screen(self):
-        async def update_lists(message):
+        async def update_lists(needs_update):
+            if not needs_update:
+                return
+
             lists_widget = self.query_one("#lists")
 
-            await lists_widget.refresh_list()
+            # await lists_widget.refresh_list()
             await self.query_one("#list-contents").refresh_content(
                 lists_widget.selected_item.item_data
             )

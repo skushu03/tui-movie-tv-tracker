@@ -276,7 +276,7 @@ def add_diary_entry(db, data, watched_set):
         cursor.close()
 
 
-def remove_diary_entry(db, data, watched_set):
+def delete_diary_entry(db, data, watched_set):
     try:
         cursor = db.cursor()
         # check for multiple entries for the same show, if there are multiple, dont remove from set
@@ -303,14 +303,42 @@ def remove_diary_entry(db, data, watched_set):
         cursor.close()
 
 
-def search_media_in_list(db, media_type, tmdb_id, list_id, app):
+def get_lists_contain_media(db, media_type, tmdb_id):
+    # gets all the lists with "contains" key for each list that indicates if it contains given media
+    try:
+        cursor = db.cursor()
+
+        query = """
+            SELECT l.id, l.name, l.last_updated,
+            EXISTS (
+                    SELECT 1 FROM list_items
+                    WHERE tmdb_id = ? AND list_id = l.id AND media_type = ? 
+            ) as contains
+            FROM lists l
+        """
+
+        cursor.execute(query, (tmdb_id, media_type))
+
+        results = cursor.fetchall()
+
+        return results
+
+    except sqlite.Error as e:
+        raise Exception(f"Database Error while getting lists: {e}")
+    except Exception as e:
+        raise Exception(f"Unexpected Error while removing diary entry: {e}")
+    finally:
+        cursor.close()
+
+
+def search_media_in_list(db, media_type, tmdb_id, list_id):
     # check if media is in given list
     try:
         cursor = db.cursor()
 
-        query = "SELECT tmdb_id FROM list_items WHERE media_type = ? AND tmdb_id = ? AND list_id = ?"
+        query = "SELECT tmdb_id FROM list_items WHERE tmdb_id = ? AND list_id = ? AND media_type = ?"
 
-        cursor.execute(query, (media_type, tmdb_id, list_id))
+        cursor.execute(query, (tmdb_id, list_id, media_type))
 
         if cursor.fetchone():
             return True

@@ -4,7 +4,7 @@ from textual.widgets import Label
 import tui_movie_tv_tracker.database as database
 
 
-class MediaDetails(Vertical):
+class MediaDetails(Vertical, can_focus=True):
     def __init__(self, media_metadata, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.media_metadata = media_metadata
@@ -36,11 +36,14 @@ class MediaDetails(Vertical):
 
             # right now media_metadata already has all the info thats being displayed but
             # in the future the media_info table will like genres and overview and maybe director so in turn get_media_info will return all those too
+
             self.media_info = database.get_media_info(
                 self.app.db,
                 self.media_metadata.get("tmdb_id", ""),
                 self.media_metadata.get("media_type", ""),
             )
+
+            # also add if not self.media_info, make http request
 
             self.query_one("#md-label-type").update(
                 f"\[{self.media_info.get('media_type', '').upper()}]"

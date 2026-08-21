@@ -64,13 +64,16 @@ class Lists(ListView):
             # if not list_name:
             #     return
             try:
+                if not list_name:
+                    return
+
                 database.create_list(self.app.db, list_name)
                 await self.refresh_list()
             except Exception as e:
                 self.app.notify(str(e), severity="warning")
 
         await self.app.push_screen(
-            InputModal("Enter list name:", 36), callback=handle_create_list
+            InputModal("Enter new list name:", 36), callback=handle_create_list
         )
 
     async def action_delete_list(self):
