@@ -8,6 +8,7 @@ from textual.widgets import ListItem as TextualListItem
 
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker import tmdb
+from tui_movie_tv_tracker.actions import apply_changes_to_lists
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
 from tui_movie_tv_tracker.checklist_modal import ChecklistModal
 from tui_movie_tv_tracker.modals.media_details_modal import MediaDetailsModal
@@ -23,42 +24,22 @@ class SearchResultsList(ListView):
     ]
 
     def action_add(self):
-        lists = database.get_lists(self.app.db)
-
         selected_item_data = self.children[self.index].item_data
 
-        for li in lists:
-            if database.search_media_in_list(
-                self.app.db,
-                selected_item_data["media_type"],
-                selected_item_data["tmdb_id"],
-                li["id"],
-            ):
-                li["contains"] = True
-            else:
-                li["contains"] = False
+        lists = database.get_lists_contain_media(
+            self.app.db, selected_item_data["media_type"], selected_item_data["tmdb_id"]
+        )
 
-        def update_lists(changes):
+        def apply_changes(changes):
             if not changes:
                 return
-            # self.app.notify(str(changes))
-            for list_id, value in changes.items():
-                if value == 1:
-                    database.add_list_item(
-                        self.app.db,
-                        selected_item_data,
-                        list_id,
-                    )
-                    self.screen.lists_updated = True
-                elif value == -1:
-                    database.delete_list_item(
-                        self.app.db,
-                        selected_item_data,
-                        list_id,
-                    )
-                    self.screen.lists_updated = True
 
-        self.app.push_screen(ChecklistModal("Lists", lists), update_lists)
+            self.screen.lists_updated = (
+                self.screen.lists_updated
+                or apply_changes_to_lists(self.app, selected_item_data, changes)
+            )
+
+        self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)
 
 
 class SearchResultItem(TextualListItem):

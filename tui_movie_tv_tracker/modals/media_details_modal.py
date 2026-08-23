@@ -3,6 +3,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Label, Static
 
 import tui_movie_tv_tracker.database as database
+from tui_movie_tv_tracker.actions import apply_changes_to_lists
 from tui_movie_tv_tracker.checklist_modal import ChecklistModal
 
 
@@ -37,32 +38,21 @@ class MediaDetailsModal(ModalScreen):
         )
 
     async def action_add(self):
-        lists = database.get_lists(self.app.db)
+        lists = database.get_lists_contain_media(
+            self.app.db,
+            self.media_info["media_type"],
+            self.media_info["tmdb_id"],
+        )
 
-        for li in lists:
-            if database.search_media_in_list(
-                self.app.db,
-                self.media_info["media_type"],
-                self.media_info["tmdb_id"],
-                li["id"],
-            ):
-                li["contains"] = True
-            else:
-                li["contains"] = False
-
-        async def update_lists(changes):
+        async def apply_changes(changes):
             if not changes:
                 return
 
-            for list_id, ch in changes.items():
-                if ch == 1:
-                    database.add_list_item(self.app.db, self.media_info, list_id)
-                    self.lists_updated = True
-                elif ch == -1:
-                    database.delete_list_item(self.app.db, self.media_info, list_id)
-                    self.lists_updated = True
+            self.lists_updated = self.lists_updated or apply_changes_to_lists(
+                self.app, self.media_info, changes
+            )
 
-        await self.app.push_screen(ChecklistModal("Lists", lists), update_lists)
+        await self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)
 
     def action_exit(self):
         self.dismiss(self.lists_updated)

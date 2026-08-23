@@ -105,15 +105,7 @@ def get_lists(db):
 
         results = cursor.fetchall()
 
-        lists = []
-        for res in results:
-            lists.append(
-                {
-                    "name": res["name"],
-                    "id": res["id"],
-                    "last_updated": res["last_updated"],
-                }
-            )
+        lists = [dict(res) for res in results]
 
         return lists
 
@@ -137,18 +129,7 @@ def get_list_items(db, list_id):
 
         results = cursor.fetchall()
 
-        list_items = []
-        for r in results:
-            list_items.append(
-                {
-                    "title": r["title"],
-                    "tmdb_id": r["tmdb_id"],
-                    "release_date": r["release_date"],
-                    "media_type": r["media_type"],
-                    "rating": r["rating"],
-                    "num_ratings": r["num_ratings"],
-                }
-            )
+        list_items = [dict(res) for res in results]
 
         return list_items
     except sqlite.Error as e:
@@ -321,7 +302,12 @@ def get_lists_contain_media(db, media_type, tmdb_id):
 
         results = cursor.fetchall()
 
-        return results
+        lists = [dict(res) for res in results]
+
+        for li in lists:
+            li["contains"] = bool(li["contains"])
+
+        return lists
 
     except sqlite.Error as e:
         raise Exception(f"Database Error while getting lists: {e}")

@@ -2,6 +2,7 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Label, ListItem, Static
 
 import tui_movie_tv_tracker.database as database
+from tui_movie_tv_tracker.actions import apply_changes_to_lists
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
 from tui_movie_tv_tracker.checklist_modal import ChecklistModal
 from tui_movie_tv_tracker.input_modal import InputModal
@@ -90,34 +91,20 @@ class ListContents(Vertical, can_focus=True):
 
         highlighted_item_data = highlighted_item.item_data
 
-        lists = database.get_lists(self.app.db)
+        lists = database.get_lists_contain_media(
+            self.app.db,
+            highlighted_item_data["media_type"],
+            highlighted_item_data["tmdb_id"],
+        )
 
-        for li in lists:
-            if database.search_media_in_list(
-                self.app.db,
-                highlighted_item_data["media_type"],
-                highlighted_item_data["tmdb_id"],
-                li["id"],
-            ):
-                li["contains"] = True
-            else:
-                li["contains"] = False
-
-        async def update_lists(changes):
+        async def apply_changes(changes):
             if not changes:
                 return
 
-            for list_id, ch in changes.items():
-                if ch == 1:
-                    database.add_list_item(self.app.db, highlighted_item_data, list_id)
-                elif ch == -1:
-                    database.delete_list_item(
-                        self.app.db, highlighted_item_data, list_id
-                    )
+            if apply_changes_to_lists(self.app, highlighted_item_data, changes):
+                await self.refresh_content()
 
-            await self.refresh_content()
-
-        await self.app.push_screen(ChecklistModal("Lists", lists), update_lists)
+        await self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)
 
     async def action_delete(self):
         highlighted_item = self.query_one("MediaList").highlighted_child

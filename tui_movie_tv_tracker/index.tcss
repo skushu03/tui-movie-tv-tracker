@@ -112,3 +112,22 @@ SearchResultsList, LoadingIndicator {
 #search-details-modal > Static:last-child {
 	margin: 1 0 0 0;
 }
+
+/* diary entry modal */
+#diary-entry-modal {
+	padding: 1;
+}
+
+#diary-entry-modal > Label{
+	background: red;
+	margin: 0 0 1 0;
+}
+
+#diary-entry-modal > Horizontal {
+	align: center middle;
+	height: auto;
+}
+
+#diary-entry-modal > Horizontal > Label {
+	background: green;
+}
