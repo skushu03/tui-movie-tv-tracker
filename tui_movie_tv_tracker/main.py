@@ -10,7 +10,6 @@ from tui_movie_tv_tracker import database
 from tui_movie_tv_tracker.list_contents import ListContents
 from tui_movie_tv_tracker.lists import Lists
 from tui_movie_tv_tracker.media_details import MediaDetails
-from tui_movie_tv_tracker.modals.diary_entry_modal import DiaryEntryModal
 from tui_movie_tv_tracker.search_screen import SearchScreen
 
 
@@ -25,7 +24,6 @@ class MainScreen(Screen):
         ("shift+tab", "prev_focus", "Switch focus to previous pane"),
         ("s", "show_search_screen", "Display search screen"),
         ("S", "show_search_screen", "Display search screen"),
-        ("t", "test", "Testing"),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -46,10 +44,10 @@ class MainScreen(Screen):
     async def on_mount(self):
         selected_list = self.query_one("#lists").selected_item
 
-        await self.query_one("#list-contents").refresh_content(selected_list.item_data)
-
-    def action_test(self):
-        self.app.push_screen(DiaryEntryModal())
+        if selected_list:
+            await self.query_one("#list-contents").refresh_content(
+                selected_list.item_data
+            )
 
     def action_next_focus(self):
         # self.app.notify(str(self.focused.id))
@@ -85,6 +83,7 @@ class MainScreen(Screen):
     def list_item_selected(self, event):
         origin_id = event.list_view.id
         selected_item = event.item
+        self.app.notify(str(selected_item.item_data))
 
         if origin_id == "list-contents-items":
             # self.app.notify(str(selected_item.item_data))

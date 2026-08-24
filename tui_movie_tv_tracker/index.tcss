@@ -91,10 +91,15 @@ SearchResultsList, LoadingIndicator {
 
 #search-results-header , SearchResultItem Static, MediaItem Static{
 	width: 1fr;
+	margin: 0 1;
+}
+
+MediaItem Static:first-child{
+	width: 2fr;
 }
 
 .media-item-watched {
-	color: green;
+	color: rgba(12, 207, 51, 1);
 }
 
 .checklist-view{

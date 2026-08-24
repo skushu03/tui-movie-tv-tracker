@@ -3,8 +3,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Label, Static
 
 import tui_movie_tv_tracker.database as database
-from tui_movie_tv_tracker.actions import apply_changes_to_lists
-from tui_movie_tv_tracker.checklist_modal import ChecklistModal
+from tui_movie_tv_tracker.modals.checklist_modal import ChecklistModal
 
 
 class MediaDetailsModal(ModalScreen):
@@ -23,7 +22,7 @@ class MediaDetailsModal(ModalScreen):
     def compose(self):
         yield Vertical(
             Label(
-                f"\[{self.media_info.get('media_type', '').upper()}]",
+                f"\\[{self.media_info.get('media_type', '').upper()}]",
             ),
             Label(f"Title: {self.media_info.get('title', '')}"),
             Label(
@@ -48,8 +47,9 @@ class MediaDetailsModal(ModalScreen):
             if not changes:
                 return
 
-            self.lists_updated = self.lists_updated or apply_changes_to_lists(
-                self.app, self.media_info, changes
+            self.lists_updated = (
+                database.apply_changes_to_lists(self.app.db, self.media_info, changes)
+                or self.lists_updated
             )
 
         await self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)

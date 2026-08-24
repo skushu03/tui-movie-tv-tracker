@@ -3,7 +3,7 @@ from textual.widgets import ListItem as TextualListItem
 
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
-from tui_movie_tv_tracker.input_modal import InputModal
+from tui_movie_tv_tracker.modals.input_modal import InputModal
 
 
 class ListItem(TextualListItem):
@@ -54,6 +54,8 @@ class Lists(ListView):
             else:
                 self.index = old_index
 
+            if self.index is not None:
+                self.selected_item = self.children[self.index]
             # self.app.notify("Lists updated")
 
         except Exception as e:
@@ -61,8 +63,6 @@ class Lists(ListView):
 
     async def action_create_list(self):
         async def handle_create_list(list_name):
-            # if not list_name:
-            #     return
             try:
                 if not list_name:
                     return

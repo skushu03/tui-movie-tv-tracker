@@ -8,9 +8,8 @@ from textual.widgets import ListItem as TextualListItem
 
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker import tmdb
-from tui_movie_tv_tracker.actions import apply_changes_to_lists
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
-from tui_movie_tv_tracker.checklist_modal import ChecklistModal
+from tui_movie_tv_tracker.modals.checklist_modal import ChecklistModal
 from tui_movie_tv_tracker.modals.media_details_modal import MediaDetailsModal
 
 
@@ -35,8 +34,10 @@ class SearchResultsList(ListView):
                 return
 
             self.screen.lists_updated = (
-                self.screen.lists_updated
-                or apply_changes_to_lists(self.app, selected_item_data, changes)
+                database.apply_changes_to_lists(
+                    self.app.db, selected_item_data, changes
+                )
+                or self.screen.lists_updated
             )
 
         self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)
@@ -51,10 +52,12 @@ class SearchResultItem(TextualListItem):
 
     def compose(self):
         yield Horizontal(
-            Static(self.item_data.get("title", "")),
+            Static(
+                self.item_data.get("title", ""),
+                classes=f"result-item-row {'media-item-watched' if self.item_data['watched'] else ''}",
+            ),
             Static(self.item_data.get("release_date", "")),
             Static(str(self.item_data.get("rating", ""))),
-            classes=f"result-item-row {'media-item-watched' if self.item_data['watched'] else ''}",
         )
 
 

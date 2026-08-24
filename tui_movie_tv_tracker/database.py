@@ -43,6 +43,7 @@ def init_db(db):
         CREATE TABLE IF NOT EXISTS diary(
             tmdb_id INTEGER NOT NULL,
             media_type TEXT NOT NULL, 
+            title TEXT NOT NULL,
             date TEXT NOT NULL, 
             FOREIGN KEY (tmdb_id) REFERENCES media_info (tmdb_id),
             PRIMARY KEY (tmdb_id, media_type, date)
@@ -119,7 +120,8 @@ def get_list_items(db, list_id):
     try:
         cursor = db.cursor()
 
-        query = """SELECT mi.title, mi.tmdb_id, mi.rating, mi.release_date, mi.media_type, mi.num_ratings
+        query = """SELECT mi.title, mi.tmdb_id, mi.rating, mi.release_date, mi.media_type, mi.num_ratings, 
+            EXISTS (SELECT 1 FROM diary WHERE tmdb_id = mi.tmdb_id AND media_type = mi.media_type) as watched
         FROM media_info mi JOIN list_items li 
         ON mi.tmdb_id = li.tmdb_id 
         WHERE li.list_id = ? AND mi.media_type = li.media_type
@@ -216,36 +218,47 @@ def get_watched(db):
         cursor.close()
 
 
-def add_diary_entry(db, data, watched_set):
+def add_diary_entry(db, media_info, watched_set, date):
     try:
         cursor = db.cursor()
         # chcek if media info alreday in db
         query = "SELECT title FROM media_info WHERE tmdb_id = ? AND media_type = ?"
         # if not add
-        cursor.execute(query, (data["tmdb_id"], data["media_type"]))
+        cursor.execute(query, (media_info["tmdb_id"], media_info["media_type"]))
         if not cursor.fetchone():
             query = "INSERT INTO media_info (title, tmdb_id, rating, num_ratings, release_date, media_type) VALUES (?, ?, ?, ?, ?, ?)"
 
             cursor.execute(
                 query,
                 (
-                    data["title"],
-                    data["tmdb_id"],
-                    data["rating"],
-                    data["num_ratings"],
-                    data["release_date"],
-                    data["media_type"],
+                    media_info["title"],
+                    media_info["tmdb_id"],
+                    media_info["rating"],
+                    media_info["num_ratings"],
+                    media_info["release_date"],
+                    media_info["media_type"],
                 ),
             )
         # add to diary
-        query = "INSERT INTO diary (tmdb_id, media_type, date) VALUES (?, ?, ?)"
+        query = (
+            "INSERT INTO diary (tmdb_id, media_type, date, title) VALUES (?, ?, ?, ?)"
+        )
 
-        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        cursor.execute(query, (data["tmdb_id"], data["media_type"], date))
+        full_date = date + datetime.datetime.now().strftime(" %H:%M:%S")[:-3]
+
+        cursor.execute(
+            query,
+            (
+                media_info["tmdb_id"],
+                media_info["media_type"],
+                full_date,
+                media_info["title"],
+            ),
+        )
 
         db.commit()
 
-        watched_set.add((data["tmdb_id"], data["media_type"]))
+        watched_set.add((media_info["tmdb_id"], media_info["media_type"]))
 
     except sqlite.IntegrityError as e:
         raise Exception(f"Database conflict: {e}")
@@ -427,3 +440,27 @@ def get_media_info(db, tmdb_id, media_type):
         raise Exception(f"Unexpected Error while getting media info: {e}")
     finally:
         cursor.close()
+
+
+def apply_changes_to_lists(db, target_media_info, changes):
+    if not changes:
+        return False
+
+    lists_updated = False
+    for list_id, value in changes.items():
+        if value == 1:
+            add_list_item(
+                db,
+                target_media_info,
+                list_id,
+            )
+            lists_updated = True
+        elif value == -1:
+            delete_list_item(
+                db,
+                target_media_info,
+                list_id,
+            )
+            lists_updated = True
+
+    return lists_updated
