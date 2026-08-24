@@ -24,7 +24,21 @@ class MainScreen(Screen):
         ("shift+tab", "prev_focus", "Switch focus to previous pane"),
         ("s", "show_search_screen", "Display search screen"),
         ("S", "show_search_screen", "Display search screen"),
+        ("t", "temp", ""),
     ]
+
+    def action_temp(self):
+        # x = database.get_watched_stats(self.app.db, 2026)
+        # for i in x:
+        #     self.app.notify(
+        #         f"{i['month']}: movies-{i['movie_count']} and shows-{i['tv_count']}"
+        #     )
+        x = database.get_diary_entries(self.app.db, 2026, 8)
+
+        for i in x:
+            self.app.notify(i["title"])
+
+        return
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -83,7 +97,6 @@ class MainScreen(Screen):
     def list_item_selected(self, event):
         origin_id = event.list_view.id
         selected_item = event.item
-        self.app.notify(str(selected_item.item_data))
 
         if origin_id == "list-contents-items":
             # self.app.notify(str(selected_item.item_data))

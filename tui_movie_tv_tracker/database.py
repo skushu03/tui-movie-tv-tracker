@@ -426,13 +426,7 @@ def get_media_info(db, tmdb_id, media_type):
         res = cursor.fetchone()
 
         if res:
-            return {
-                "title": res["title"],
-                "release_date": res["release_date"],
-                "rating": res["rating"],
-                "num_ratings": res["num_ratings"],
-                "media_type": res["media_type"],
-            }
+            return dict(res)
         return {}
     except sqlite.Error as e:
         raise Exception(f"Database Error while getting media info: {e}")
@@ -446,21 +440,101 @@ def apply_changes_to_lists(db, target_media_info, changes):
     if not changes:
         return False
 
-    lists_updated = False
-    for list_id, value in changes.items():
-        if value == 1:
-            add_list_item(
-                db,
-                target_media_info,
-                list_id,
-            )
-            lists_updated = True
-        elif value == -1:
-            delete_list_item(
-                db,
-                target_media_info,
-                list_id,
-            )
-            lists_updated = True
+    try:
+        lists_updated = False
+        for list_id, value in changes.items():
+            if value == 1:
+                add_list_item(
+                    db,
+                    target_media_info,
+                    list_id,
+                )
+                lists_updated = True
+            elif value == -1:
+                delete_list_item(
+                    db,
+                    target_media_info,
+                    list_id,
+                )
+                lists_updated = True
 
-    return lists_updated
+        return lists_updated
+
+    except sqlite.IntegrityError as e:
+        raise Exception(str(e))
+    except sqlite.Error as e:
+        raise Exception(str(e))
+    except Exception as e:
+        raise Exception(str(e))
+
+
+def get_diary_entries(db, year, month):
+    try:
+        year = int(year)
+        month = int(month)
+
+        cursor = db.cursor()
+
+        month_start = f"{year}-{month:02d}-01 00:00:00.000"
+
+        if month < 12:
+            month_end = f"{year}-{(month + 1):02d}-01 00:00:00.000"
+        else:
+            month_end = f"{year + 1}-01-01 00:00:00.000"
+
+        query = """SELECT * FROM diary 
+        WHERE date >= ? AND date < ?
+        ORDER BY date DESC
+        """
+
+        cursor.execute(query, (month_start, month_end))
+
+        entries = [dict(res) for res in cursor.fetchall()]
+
+        return entries
+
+    except sqlite.Error as e:
+        raise Exception(f"Database error while getting diary entries: {e}")
+    except (ValueError, TypeError) as e:
+        raise Exception(f"Invalid input for year or month: {e}")
+    except Exception as e:
+        raise Exception(f"Unexpected Error while getting diary entries: {e}")
+    finally:
+        cursor.close()
+
+
+def get_watched_stats(db, year):
+    try:
+        cursor = db.cursor()
+
+        year_start = f"{year}-01-01 00:00:00.000"
+        year_end = f"{year + 1}-12-31 00:00:00.000"
+
+        query = """
+        SELECT 
+            STRFTIME('%Y-%m', date) AS month,
+            COUNT(*) FILTER (WHERE media_type='movie') AS movie_count,
+            COUNT(*) FILTER (WHERE media_type='tv') AS tv_count,
+            COUNT(*) AS total_count
+        FROM diary
+        WHERE date >= ? AND date < ?
+        GROUP by month
+        ORDER BY month ASC 
+        """
+
+        cursor.execute(query, (year_start, year_end))
+
+        counts = [dict(res) for res in cursor.fetchall()]
+
+        return counts
+
+    except sqlite.Error as e:
+        raise Exception(f"Database error while getting diary entries: {e}")
+    except (ValueError, TypeError) as e:
+        raise Exception(f"Invalid input for year or month: {e}")
+    except Exception as e:
+        raise Exception(f"Unexpected Error while getting diary entries: {e}")
+    finally:
+        cursor.close()
+
+    # gets how many shows watched and movies watched in each month given year

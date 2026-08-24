@@ -1,4 +1,5 @@
 import calendar
+import datetime
 
 from textual import on
 from textual.containers import Container, Horizontal, Vertical
@@ -9,6 +10,8 @@ import tui_movie_tv_tracker.database as database
 
 MONTHS = list(calendar.month_name)[1:]
 
+MIN_YEAR = 1940
+
 
 class DiaryEntryModal(ModalScreen):
     BINDINGS = [("escape", "exit", "Close modal"), ("x", "temp", "temp")]
@@ -16,6 +19,7 @@ class DiaryEntryModal(ModalScreen):
     def __init__(self, media_info, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.media_info = media_info
+        self.curr_year = datetime.date.today().year
 
         self.year = 0
         self.month = 0
@@ -31,7 +35,7 @@ class DiaryEntryModal(ModalScreen):
             Label(f'Watched "{media_title}" on:'),
             Horizontal(
                 Select.from_values(
-                    [y for y in range(2026, 2000 - 1, -1)],
+                    [y for y in range(self.curr_year, MIN_YEAR - 1, -1)],
                     prompt="Year",
                     allow_blank=False,
                     id="diary-entry-year",
