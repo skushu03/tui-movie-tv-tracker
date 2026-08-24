@@ -1,9 +1,9 @@
 import calendar
 
 from textual import on
-from textual.containers import Horizontal, Vertical
+from textual.containers import Container, Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Label, Select, Static
+from textual.widgets import Button, Label, Select, Static
 
 MONTHS = list(calendar.month_name)[1:]
 
@@ -43,6 +43,7 @@ class DiaryEntryModal(ModalScreen):
                     id="diary-entry-day",
                 ),
             ),
+            Container(Button("ADD")),
             classes="modal-container",
             id="diary-entry-modal",
         )

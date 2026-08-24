@@ -119,7 +119,6 @@ SearchResultsList, LoadingIndicator {
 }
 
 #diary-entry-modal > Label{
-	background: red;
 	margin: 0 0 1 0;
 }
 
@@ -128,6 +127,13 @@ SearchResultsList, LoadingIndicator {
 	height: auto;
 }
 
-#diary-entry-modal > Horizontal > Label {
-	background: green;
+#diary-entry-modal > Container {
+	align: center middle;
+	height: auto;
 }
+#diary-entry-modal > Container > Button {
+	background: blue;
+	margin: 1 0 0 0;
+	padding: 0;
+}
+
