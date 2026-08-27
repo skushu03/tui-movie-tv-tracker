@@ -9,10 +9,11 @@ class MediaDetails(Vertical, can_focus=True):
         super().__init__(*args, **kwargs)
         self.media_metadata = media_metadata
         self.media_info = {}
+        self.border_title = "Media Details"
 
     def compose(self):
         yield Label(
-            f"\[{self.media_info.get('media_type', '').upper()}]", id="md-label-type"
+            f"\\[{self.media_info.get('media_type', '').upper()}]", id="md-label-type"
         )
         yield Label(f"Title: {self.media_info.get('title', '')}", id="md-label-title")
         yield Label(

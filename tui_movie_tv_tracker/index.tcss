@@ -7,7 +7,9 @@ Pane {
 	height: 1fr;
 }
 
+
 .pane-window {
+	width: 1fr;
 	border: solid white;
 	padding: 0 1;
 	background: transparent;
@@ -21,10 +23,74 @@ Pane {
 	color: rgba(255, 255, 255, 1);
 }
 
-.pane-window > ListView {
-	background: transparent;
+#lists{
+	padding: 0 1;
+	min-width: 40;
+	width: 0.5fr;
 }
 
+ListContents > MediaList {
+	border-top: white white;
+	background:transparent;
+}
+
+ListContents > MediaList:focus-within {
+	border-top: solid blue;
+}
+
+#watch-stats {
+	height: 1fr;
+	padding: 0;
+	width: auto;
+}
+
+WatchStats > Label {
+	margin: 1 0 0 1;
+}
+
+WatchStats > #watch-stats-numbers{
+	width: auto;
+	align: center bottom;
+	margin: 0 1 0 1;
+}
+
+WatchStats > #watch-stats-numbers > .watch-stats-bar {
+	align: center bottom;
+	padding: 0;
+	width: 3;
+	margin: 0 1 0 0;
+	height: 1fr;
+}
+
+	/*background: rgb(104, 2, 237);*/
+WatchStats > #watch-stats-numbers > .watch-stats-bar > .watch-stats-movie-bar{
+	width: 0;
+	margin: 0 0;
+	height: 0;
+	background: #5810b5;
+}
+
+	/*background: rgb(177, 5, 235);*/
+WatchStats > #watch-stats-numbers > .watch-stats-bar > .watch-stats-tv-bar{
+	width: 0;
+	margin: 0 0;
+	height: 0;
+	background:#1f1485;
+}
+
+
+WatchStats > #watch-stats-months {
+	margin: 0 1 1 1;
+	width: auto;
+	height: auto;
+}
+
+WatchStats > #watch-stats-months > Label {
+	width: 4;
+}
+
+
+/*========gen modal*/
 ModalScreen {
 	align: center middle;
 	background: rgba(0, 0, 0, 0.5); 
@@ -43,19 +109,8 @@ ModalScreen {
 	padding: 0 1;
 }
 
-#lists{
-	padding: 0 1;
-	min-width: 40;
-	width: 0.5fr;
-}
-ListContents > MediaList {
-	border-top: white white;
-}
+/*==============search screen*/
 
-ListContents > MediaList:focus-within {
-	border-top: solid blue;
-}
-/* search screen*/
 #search-screen-container {
 	padding: 2 3;
 }
@@ -118,10 +173,7 @@ MediaItem Static:first-child{
 	margin: 1 0 0 0;
 }
 
-/* diary entry modal */
-#diary-entry-modal {
-	padding: 1;
-}
+/* ================diary entry modal */
 
 #diary-entry-modal > Label{
 	margin: 0 0 1 0;

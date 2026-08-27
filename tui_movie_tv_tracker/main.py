@@ -1,7 +1,7 @@
 import asyncio
 
 from textual import events, on
-from textual.app import App, ComposeResult
+from textual.app import App
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import Static
@@ -11,9 +11,13 @@ from tui_movie_tv_tracker.list_contents import ListContents
 from tui_movie_tv_tracker.lists import Lists
 from tui_movie_tv_tracker.media_details import MediaDetails
 from tui_movie_tv_tracker.search_screen import SearchScreen
+from tui_movie_tv_tracker.watch_stats import WatchStats
 
 
 class Pane(Static):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def on_mount(self):
         self.border_title = "lists"
 
@@ -28,16 +32,20 @@ class MainScreen(Screen):
     ]
 
     def action_temp(self):
-        # x = database.get_watched_stats(self.app.db, 2026)
-        # for i in x:
-        #     self.app.notify(
-        #         f"{i['month']}: movies-{i['movie_count']} and shows-{i['tv_count']}"
-        #     )
-        x = database.get_diary_entries(self.app.db, 2026, 8)
+        x = database.get_watched_stats(self.app.db, 2026)
+        max_total = max(i["total_count"] for i in x)
 
         for i in x:
-            self.app.notify(i["title"])
-
+            self.app.notify(str(i))
+            # self.app.notify(i["month"] + str(i["movie_count"] / max_total * 100))
+        # x = database.get_diary_entries(self.app.db, 2026, 8)
+        #
+        # for i in x:
+        #     self.app.notify(i["title"])
+        #
+        # for i in self.focusable_panes:
+        #     self.app.notify(i.id)
+        # self.app.notify(str(len(self.focusable_panes)))
         return
 
     def __init__(self, *args, **kwargs):
@@ -52,7 +60,9 @@ class MainScreen(Screen):
                 ),
                 MediaDetails({}, id="media-details", classes="pane-window"),
             ),
-            Horizontal(Pane("year_month_stats"), Pane("diary")),
+            Horizontal(
+                WatchStats(id="watch-stats", classes="pane-window"), Pane("diary")
+            ),
         )
 
     async def on_mount(self):
@@ -62,23 +72,34 @@ class MainScreen(Screen):
             await self.query_one("#list-contents").refresh_content(
                 selected_list.item_data
             )
+        #
+        self.focusable_panes = self.query(".pane-window")
+        self.focus_index = 0
 
     def action_next_focus(self):
-        # self.app.notify(str(self.focused.id))
-        if self.focused.id == "lists":
-            self.query_one("#list-contents-items").focus()
-        elif self.focused.id == "list-contents-items":
-            self.query_one("#media-details").focus()
-        elif self.focused.id == "media-details":
-            self.query_one("#lists").focus()
+        self.focus_index = (self.focus_index + 1) % len(self.focusable_panes)
+        self.focusable_panes[self.focus_index].focus()
 
     def action_prev_focus(self):
-        if self.focused.id == "lists":
-            self.query_one("#media-details").focus()
-        elif self.focused.id == "list-contents-items":
-            self.query_one("#lists").focus()
-        elif self.focused.id == "media-details":
-            self.query_one("#list-contents-items").focus()
+        self.focus_index = (self.focus_index - 1) % len(self.focusable_panes)
+        self.focusable_panes[self.focus_index].focus()
+
+    # def action_next_focus(self):
+    #     # self.app.notify(str(self.focused.id))
+    #     if self.focused.id == "lists":
+    #         self.query_one("#list-contents-items").focus()
+    #     elif self.focused.id == "list-contents-items":
+    #         self.query_one("#media-details").focus()
+    #     elif self.focused.id == "media-details":
+    #         self.query_one("#lists").focus()
+    #
+    # def action_prev_focus(self):
+    #     if self.focused.id == "lists":
+    #         self.query_one("#media-details").focus()
+    #     elif self.focused.id == "list-contents-items":
+    #         self.query_one("#lists").focus()
+    #     elif self.focused.id == "media-details":
+    #         self.query_one("#list-contents-items").focus()
 
     @on(Lists.Selected, "#lists")
     async def list_selected(self, event):

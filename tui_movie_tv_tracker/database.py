@@ -460,12 +460,8 @@ def apply_changes_to_lists(db, target_media_info, changes):
 
         return lists_updated
 
-    except sqlite.IntegrityError as e:
-        raise Exception(str(e))
-    except sqlite.Error as e:
-        raise Exception(str(e))
     except Exception as e:
-        raise Exception(str(e))
+        raise Exception(e)
 
 
 def get_diary_entries(db, year, month):
