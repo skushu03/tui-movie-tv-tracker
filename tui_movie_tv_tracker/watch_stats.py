@@ -20,14 +20,25 @@ MONTHS = [
 
 
 class WatchStats(Vertical, can_focus=True):
-    def __init__(self, *args, **kwargs):
+    BINDINGS = [
+        ("j", "prev_year", "View prev year stats"),
+        ("J", "prev_year", "View prev year stats"),
+        ("k", "next_year", "View next year stats"),
+        ("K", "next_year", "View next year stats"),
+        ("h", "prev_month", "View prev month stats"),
+        ("H", "prev_month", "View prev month stats"),
+        ("l", "next_month", "View next month stats"),
+        ("L", "next_month", "View next month stats"),
+    ]
+
+    def __init__(self, pane_title=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.border_title = "Watch Stats"
+        self.border_title = pane_title if pane_title else "Watch Stats"
 
         self.year = 2026
 
     def compose(self):
-        yield Label("2026")
+        yield Label(str(self.year))
         yield Horizontal(
             *(
                 Vertical(
@@ -54,15 +65,19 @@ class WatchStats(Vertical, can_focus=True):
             for info in watched_stats:
                 month_index = int(info["month"][5:]) - 1
 
-                movie_bars[
-                    month_index
-                ].styles.height = f"{(info['movie_count'] / max_total * 100):.0f}%"
-                movie_bars[month_index].styles.width = 3
+                if info["movie_count"]:
+                    movie_bars[
+                        month_index
+                    ].styles.height = f"{(info['movie_count'] / max_total * 100):.0f}%"
 
-                tv_bars[
-                    month_index
-                ].styles.height = f"{(info['tv_count'] / max_total * 100):.0f}%"
-                tv_bars[month_index].styles.width = 3
+                    movie_bars[month_index].styles.display = "block"
+
+                if info["tv_count"]:
+                    tv_bars[
+                        month_index
+                    ].styles.height = f"{(info['tv_count'] / max_total * 100):.0f}%"
+
+                    tv_bars[month_index].styles.display = "block"
 
         except Exception as e:
             self.app.notify(str(e))

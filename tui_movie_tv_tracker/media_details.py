@@ -5,11 +5,11 @@ import tui_movie_tv_tracker.database as database
 
 
 class MediaDetails(Vertical, can_focus=True):
-    def __init__(self, media_metadata, *args, **kwargs):
+    def __init__(self, media_metadata, pane_title=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.media_metadata = media_metadata
         self.media_info = {}
-        self.border_title = "Media Details"
+        self.border_title = pane_title if pane_title else "Media Details"
 
     def compose(self):
         yield Label(

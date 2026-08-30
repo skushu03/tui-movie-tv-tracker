@@ -221,6 +221,11 @@ def get_watched(db):
 def add_diary_entry(db, media_info, watched_set, date):
     try:
         cursor = db.cursor()
+
+        curr_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        if date > curr_date:
+            raise ValueError("Invalid date. Can't add entry for future date")
+
         # chcek if media info alreday in db
         query = "SELECT title FROM media_info WHERE tmdb_id = ? AND media_type = ?"
         # if not add
@@ -264,6 +269,8 @@ def add_diary_entry(db, media_info, watched_set, date):
         raise Exception(f"Database conflict: {e}")
     except sqlite.Error as e:
         raise Exception(f"Database Error while creating a new diary entry: {e}")
+    except ValueError as e:
+        raise Exception(f"Value Error: {e}")
     except Exception as e:
         raise Exception(f"Unexpected Error while adding diary entry: {e}")
     finally:
@@ -468,6 +475,12 @@ def get_diary_entries(db, year, month):
     try:
         year = int(year)
         month = int(month)
+        # dont really need this? Can just let it return no entries
+        # if year > datetime.date.today().year and month > datetime.date.today().month:
+        #     raise ValueError("Invalid year and month. Cannot query future month")
+
+        if month > 12 or month < 1:
+            raise ValueError(f"Invalid month number: {month}")
 
         cursor = db.cursor()
 
@@ -501,8 +514,12 @@ def get_diary_entries(db, year, month):
 
 def get_watched_stats(db, year):
     try:
+        # if int(year) > datetime.date.today().year:
+        #     raise ValueError("Invalid year. Too Large")
+
         cursor = db.cursor()
 
+        year = int(year)
         year_start = f"{year}-01-01 00:00:00.000"
         year_end = f"{year + 1}-12-31 00:00:00.000"
 

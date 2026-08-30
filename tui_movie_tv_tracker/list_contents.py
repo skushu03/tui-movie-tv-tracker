@@ -26,12 +26,12 @@ class MediaItem(ListItem):
 
     def compose(self):
         yield Horizontal(
-            Static(
+            Label(
                 self.item_data.get("title", ""),
                 classes=f"{'media-item-watched' if self.item_data['watched'] else ''}",
             ),
-            Static(self.item_data.get("release_date", "")[:4]),
-            Static(self.item_data.get("media_type", "")),
+            Label(self.item_data.get("release_date", "")[:4]),
+            Label(self.item_data.get("media_type", "")),
         )
 
 
@@ -45,19 +45,16 @@ class ListContents(Vertical, can_focus=True):
         ("E", "add_diary_entry", "Add diary entry"),
     ]
 
-    def __init__(self, list_info, pane_title, *args, **kwargs):
+    def __init__(self, list_info, pane_title=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pane_title = pane_title
+        self.border_title = pane_title if pane_title else "List Contents"
         self.list_info = list_info
 
     def compose(self):
         list_info_str = f"List Name: {self.list_info.get('name', '')}\nLast Updated: {self.list_info.get('last_updated', '')}"
 
         yield Static(list_info_str, id="list-info")
-        yield MediaList(*[], id="list-contents-items")
-
-    def on_mount(self):
-        self.border_title = self.pane_title
+        yield MediaList(*[], id="media-list")
 
     async def refresh_content(self, new_list_info={}):
         # self.app.notify("Refreshing list content...")
@@ -73,7 +70,7 @@ class ListContents(Vertical, can_focus=True):
                 self.app.db, self.list_info.get("id", "")
             )
             #
-            list_view = self.query_one("#list-contents-items")
+            list_view = self.query_one("#media-list")
 
             await list_view.clear()
             new_widgets = [MediaItem(n) for n in new_items]
@@ -85,7 +82,7 @@ class ListContents(Vertical, can_focus=True):
             self.app.notify(str(e), severity="warning")
 
     def on_focus(self):
-        self.query_one("#list-contents-items").focus()
+        self.query_one("#media-list").focus()
 
     async def action_add(self):
         # should prob make this into a general reusable function

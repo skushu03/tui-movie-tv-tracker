@@ -1,0 +1,78 @@
+import calendar
+import datetime
+
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Label, ListItem
+
+import tui_movie_tv_tracker.database as database
+from tui_movie_tv_tracker.base_widgets.list_view import ListView
+
+
+class EntryList(ListView):
+    BINDINGS = [("tab", "screen.next_focus", "Switch focus to next pane")]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def on_focus(self):
+        if not self.index:
+            self.index = 0
+
+
+class EntryItem(ListItem):
+    def __init__(self, item_info, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.item_info = item_info
+        self.day = item_info.get("date", "")[8:10]
+        self.title = item_info.get("title", "[No Title Found]")
+
+    def compose(self):
+        yield Horizontal(Label(self.day), Label(self.title))
+
+
+class Diary(Vertical, can_focus=True):
+    def __init__(self, pane_title=None, year=None, month=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.border_title = pane_title if pane_title else "Diary"
+
+        self.year = int(year) if year else datetime.date.today().year
+        self.month = int(month) if month else datetime.date.today().month
+
+        self.str_month = calendar.month_name[self.month]
+
+    def compose(self):
+        yield Label(str(self.year))
+        yield Label(self.str_month)
+        yield EntryList(*[], id="entry-list")
+
+    async def on_mount(self):
+        await self.refresh_content()
+
+    async def refresh_content(self, year=None, month=None):
+        try:
+            if year:
+                self.year = int(year)
+            if month:
+                if month < 1 or month > 12:
+                    raise ValueError(f"Invalid month number: {month}")
+
+                self.month = int(month)
+                self.str_month = calendar.month_name[self.month]
+
+            diary_entries = database.get_diary_entries(
+                self.app.db, self.year, self.month
+            )
+
+            list_view = self.query_one("#entry-list")
+
+            await list_view.clear()
+            new_list_items = [EntryItem(e) for e in diary_entries]
+            await list_view.extend(new_list_items)
+        except ValueError as e:
+            self.app.notify(f"Value Error: {e}")
+        except Exception as e:
+            self.app.notify(str(e))
+
+    def on_focus(self):
+        self.query_one("#entry-list").focus()

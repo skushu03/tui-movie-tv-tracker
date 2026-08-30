@@ -23,13 +23,12 @@ class Lists(ListView):
         ("D", "delete_list", "Delete list"),
     ]
 
-    def __init__(self, pane_title, *args, **kwargs):
+    def __init__(self, pane_title=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pane_title = pane_title
+        self.border_title = pane_title if pane_title else "Lists"
         self.selected_item = None
 
     async def on_mount(self):
-        self.border_title = self.pane_title
         await self.refresh_list()
 
         if self.children:
