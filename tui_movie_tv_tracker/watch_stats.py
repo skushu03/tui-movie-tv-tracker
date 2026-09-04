@@ -2,7 +2,7 @@ import datetime
 
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
-from textual.widgets import Label, Sparkline, Static
+from textual.widgets import Label
 
 import tui_movie_tv_tracker.database as database
 
@@ -72,13 +72,14 @@ class WatchStats(Vertical, can_focus=True):
         )
 
     def on_mount(self):
-        self.refresh_stats(self.year)
+        self.refresh_content(self.year)
 
-    def refresh_stats(self, year):
+    def refresh_content(self, year=None):
         try:
-            self.year = year
-            self.year_label = self.query_one("#watch-stats-year")
-            self.year_label.update(str(self.year))
+            if year:
+                self.year = year
+                self.year_label = self.query_one("#watch-stats-year")
+                self.year_label.update(str(self.year))
 
             watched_stats = database.get_watched_stats(self.app.db, self.year)
 

@@ -138,7 +138,7 @@ class ListContents(Vertical, can_focus=True):
             InputModal("Delete media from this list? (y/N)", 1), delete_list_item
         )
 
-    def action_add_diary_entry(self):
+    async def action_add_diary_entry(self):
         highlighted_item = self.query_one("MediaList").highlighted_child
 
         if not self.list_info or not highlighted_item:
@@ -146,4 +146,6 @@ class ListContents(Vertical, can_focus=True):
 
         highlighted_item_data = highlighted_item.item_data
 
-        self.app.push_screen(DiaryEntryModal(highlighted_item_data))
+        await self.app.push_screen(
+            DiaryEntryModal(highlighted_item_data), self.screen.refresh_panes
+        )

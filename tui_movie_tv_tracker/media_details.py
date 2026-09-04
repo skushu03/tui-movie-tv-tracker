@@ -26,9 +26,9 @@ class MediaDetails(Vertical, can_focus=True):
         )
 
     def on_mount(self):
-        self.refresh_data()
+        self.refresh_content()
 
-    def refresh_data(self, new_media_metadata={}):
+    def refresh_content(self, new_media_metadata={}):
         try:
             if new_media_metadata:
                 self.media_metadata = new_media_metadata

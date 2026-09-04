@@ -3,6 +3,7 @@ import datetime
 
 from textual import on
 from textual.containers import Container, Horizontal, Vertical
+from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Button, Label, Select, Static
 
@@ -91,7 +92,7 @@ class DiaryEntryModal(ModalScreen):
         except Exception as e:
             self.app.notify(str(e), severity="warning")
         finally:
-            self.dismiss()
+            self.dismiss({})
 
     def action_exit(self):
-        self.dismiss()
+        self.dismiss({})

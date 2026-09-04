@@ -10,6 +10,7 @@ import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker import tmdb
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
 from tui_movie_tv_tracker.modals.checklist_modal import ChecklistModal
+from tui_movie_tv_tracker.modals.diary_entry_modal import DiaryEntryModal
 from tui_movie_tv_tracker.modals.media_details_modal import MediaDetailsModal
 
 
@@ -17,10 +18,12 @@ class SearchResultsList(ListView):
     BINDINGS = [
         ("a", "add", "Add to list"),
         ("A", "add", "Add to list"),
-        # ("w", "toggle_watched", "Toggle watched status"),
-        # ("W", "toggle_watched", "Toggle watched status"), this is for if they want to say they watched again
-        # to delete entry theyd have to go to the diary pane
+        ("e", "add_diary_entry", "Add diary entry"),
+        ("E", "add_diary_entry", "Add diary entry"),
     ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def action_add(self):
         selected_item_data = self.children[self.index].item_data
@@ -41,6 +44,16 @@ class SearchResultsList(ListView):
             )
 
         self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)
+
+    def action_add_diary_entry(self):
+        if not self.highlighted_child:
+            return
+
+        highlighted_item_data = self.highlighted_child.item_data
+
+        self.app.push_screen(
+            DiaryEntryModal(highlighted_item_data),
+        )
 
 
 class SearchResultItem(TextualListItem):
@@ -192,4 +205,4 @@ class SearchScreen(Screen):
         # self.app.notify("testing")
 
     def action_close(self):
-        self.dismiss(self.lists_updated)
+        self.dismiss()

@@ -4,6 +4,7 @@ from textual.widgets import Label, Static
 
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker.modals.checklist_modal import ChecklistModal
+from tui_movie_tv_tracker.modals.diary_entry_modal import DiaryEntryModal
 
 
 class MediaDetailsModal(ModalScreen):
@@ -12,6 +13,8 @@ class MediaDetailsModal(ModalScreen):
         ("A", "add", "Add to list"),
         ("escape", "exit", "Close modal"),
         ("enter", "exit", "Close modal"),
+        ("e", "add_diary_entry", "Add diary entry"),
+        ("E", "add_diary_entry", "Add diary entry"),
     ]
 
     def __init__(self, media_info, *args, **kwargs):
@@ -56,3 +59,8 @@ class MediaDetailsModal(ModalScreen):
 
     def action_exit(self):
         self.dismiss(self.lists_updated)
+
+    def action_add_diary_entry(self):
+        self.app.push_screen(
+            DiaryEntryModal(self.media_info),
+        )

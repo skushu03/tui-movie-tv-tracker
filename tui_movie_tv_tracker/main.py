@@ -12,6 +12,7 @@ from tui_movie_tv_tracker.diary import Diary
 from tui_movie_tv_tracker.list_contents import ListContents
 from tui_movie_tv_tracker.lists import Lists
 from tui_movie_tv_tracker.media_details import MediaDetails
+from tui_movie_tv_tracker.modals.diary_entry_modal import DiaryEntryModal
 from tui_movie_tv_tracker.search_screen import SearchScreen
 from tui_movie_tv_tracker.watch_stats import WatchStats
 
@@ -77,6 +78,20 @@ class MainScreen(Screen):
         self.focusable_panes = self.query(".pane-window")
         self.focus_index = 0
 
+    async def refresh_panes(self, _=None):
+        self.app.notify("refreshing panes")
+
+        lists_pane = self.query_one("#lists")
+
+        await lists_pane.refresh_content()
+        await self.query_one("#list-contents").refresh_content(
+            lists_pane.selected_item.item_data
+        )
+        # self.query_one("#media-details").refresh_content()
+        self.query_one("#watch-stats").refresh_content()
+        await self.query_one("#diary").refresh_content()
+        pass
+
     def action_next_focus(self):
         self.focus_index = (self.focus_index + 1) % len(self.focusable_panes)
         self.focusable_panes[self.focus_index].focus()
@@ -105,7 +120,7 @@ class MainScreen(Screen):
 
         if origin_id == "media-list":
             # self.app.notify(str(selected_item.item_data))
-            self.query_one("#media-details").refresh_data(selected_item.item_data)
+            self.query_one("#media-details").refresh_content(selected_item.item_data)
 
     @on(WatchStats.Selected)
     async def watch_stats_month_selected(self, event):
@@ -115,21 +130,20 @@ class MainScreen(Screen):
     def entry_list_item_selected(self, event):
         selected_item = event.item
         # self.app.notify(str(selected_item.item_info))
-        self.query_one("#media-details").refresh_data(selected_item.item_info)
+        self.query_one("#media-details").refresh_content(selected_item.item_info)
 
     def action_show_search_screen(self):
-        async def update_lists(needs_update):
-            if not needs_update:
-                return
+        # async def update_lists(needs_update):
+        #     if not needs_update:
+        #         return
+        #
+        #     lists_widget = self.query_one("#lists")
+        #
+        #     await self.query_one("#list-contents").refresh_content(
+        #         lists_widget.selected_item.item_data
+        #     )
 
-            lists_widget = self.query_one("#lists")
-
-            # await lists_widget.refresh_list()
-            await self.query_one("#list-contents").refresh_content(
-                lists_widget.selected_item.item_data
-            )
-
-        self.app.push_screen(SearchScreen(), callback=update_lists)
+        self.app.push_screen(SearchScreen(), self.refresh_panes)
 
 
 class LayoutApp(App):
@@ -139,8 +153,6 @@ class LayoutApp(App):
         self.ansi_color = True
         self.db = database.get_db()
         self.watched = database.get_watched(self.db)
-        # self.lists = set(database.get_lists(self.db))
-        # self.notify(str(self.watched))
         if not self.db:
             self.dismiss("")
         self.push_screen(MainScreen(self.db))

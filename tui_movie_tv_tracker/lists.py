@@ -29,12 +29,12 @@ class Lists(ListView):
         self.selected_item = None
 
     async def on_mount(self):
-        await self.refresh_list()
+        await self.refresh_content()
 
         if self.children:
             self.selected_item = self.children[0]
 
-    async def refresh_list(self):
+    async def refresh_content(self):
         # self.app.notify("Refreshing lists...")
         try:
             old_index = self.index
@@ -67,7 +67,7 @@ class Lists(ListView):
                     return
 
                 database.create_list(self.app.db, list_name)
-                await self.refresh_list()
+                await self.refresh_content()
             except Exception as e:
                 self.app.notify(str(e), severity="warning")
 
@@ -86,7 +86,7 @@ class Lists(ListView):
                 ]
                 database.delete_list(self.app.db, selected_list_name)
 
-                await self.refresh_list()
+                await self.refresh_content()
 
             except Exception as e:
                 self.app.notify(str(e), severity="warning")
