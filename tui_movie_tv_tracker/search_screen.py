@@ -1,5 +1,3 @@
-import asyncio
-
 from textual import on
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen

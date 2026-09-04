@@ -1,7 +1,4 @@
-import asyncio
-import datetime
-
-from textual import events, on
+from textual import on
 from textual.app import App
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
@@ -12,7 +9,6 @@ from tui_movie_tv_tracker.diary import Diary
 from tui_movie_tv_tracker.list_contents import ListContents
 from tui_movie_tv_tracker.lists import Lists
 from tui_movie_tv_tracker.media_details import MediaDetails
-from tui_movie_tv_tracker.modals.diary_entry_modal import DiaryEntryModal
 from tui_movie_tv_tracker.search_screen import SearchScreen
 from tui_movie_tv_tracker.watch_stats import WatchStats
 
@@ -133,23 +129,13 @@ class MainScreen(Screen):
         self.query_one("#media-details").refresh_content(selected_item.item_info)
 
     def action_show_search_screen(self):
-        # async def update_lists(needs_update):
-        #     if not needs_update:
-        #         return
-        #
-        #     lists_widget = self.query_one("#lists")
-        #
-        #     await self.query_one("#list-contents").refresh_content(
-        #         lists_widget.selected_item.item_data
-        #     )
-
         self.app.push_screen(SearchScreen(), self.refresh_panes)
 
 
 class LayoutApp(App):
     CSS_PATH = "index.tcss"
 
-    def on_mount(self) -> None:
+    def on_mount(self):
         self.ansi_color = True
         self.db = database.get_db()
         self.watched = database.get_watched(self.db)
@@ -157,7 +143,8 @@ class LayoutApp(App):
             self.dismiss("")
         self.push_screen(MainScreen(self.db))
 
-        # db.close()
+    def on_unmount(self):
+        self.db.close()
 
 
 if __name__ == "__main__":
