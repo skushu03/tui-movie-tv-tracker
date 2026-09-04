@@ -85,23 +85,6 @@ class MainScreen(Screen):
         self.focus_index = (self.focus_index - 1) % len(self.focusable_panes)
         self.focusable_panes[self.focus_index].focus()
 
-    # def action_next_focus(self):
-    #     # self.app.notify(str(self.focused.id))
-    #     if self.focused.id == "lists":
-    #         self.query_one("#list-contents-items").focus()
-    #     elif self.focused.id == "list-contents-items":
-    #         self.query_one("#media-details").focus()
-    #     elif self.focused.id == "media-details":
-    #         self.query_one("#lists").focus()
-    #
-    # def action_prev_focus(self):
-    #     if self.focused.id == "lists":
-    #         self.query_one("#media-details").focus()
-    #     elif self.focused.id == "list-contents-items":
-    #         self.query_one("#lists").focus()
-    #     elif self.focused.id == "media-details":
-    #         self.query_one("#list-contents-items").focus()
-
     @on(Lists.Selected, "#lists")
     async def list_selected(self, event):
         origin_id = event.list_view.id
@@ -115,20 +98,24 @@ class MainScreen(Screen):
                 selected_item.item_data
             )
 
-    @on(Lists.Selected, "#list-contents-items")
+    @on(Lists.Selected, "#media-list")
     def list_item_selected(self, event):
         origin_id = event.list_view.id
         selected_item = event.item
 
-        if origin_id == "list-contents-items":
+        if origin_id == "media-list":
             # self.app.notify(str(selected_item.item_data))
-            # return
             self.query_one("#media-details").refresh_data(selected_item.item_data)
 
     @on(WatchStats.Selected)
     async def watch_stats_month_selected(self, event):
-        # self.app.notify(str(event.month))
         await self.query_one("#diary").refresh_content(event.year, event.month)
+
+    @on(Lists.Selected, "#entry-list")
+    def entry_list_item_selected(self, event):
+        selected_item = event.item
+        # self.app.notify(str(selected_item.item_info))
+        self.query_one("#media-details").refresh_data(selected_item.item_info)
 
     def action_show_search_screen(self):
         async def update_lists(needs_update):

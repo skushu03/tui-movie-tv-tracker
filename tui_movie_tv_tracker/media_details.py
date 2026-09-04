@@ -47,7 +47,7 @@ class MediaDetails(Vertical, can_focus=True):
             # also add if not self.media_info, make http request
 
             self.query_one("#md-label-type").update(
-                f"\[{self.media_info.get('media_type', '').upper()}]"
+                f"\\[{self.media_info.get('media_type', '').upper()}]"
             )
             self.query_one("#md-label-title").update(
                 f"Title: {self.media_info.get('title', '')}"

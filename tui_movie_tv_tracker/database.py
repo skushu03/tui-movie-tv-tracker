@@ -120,12 +120,18 @@ def get_list_items(db, list_id):
     try:
         cursor = db.cursor()
 
-        query = """SELECT mi.title, mi.tmdb_id, mi.rating, mi.release_date, mi.media_type, mi.num_ratings, 
+        query = """SELECT mi.title, mi.tmdb_id, mi.release_date, mi.media_type, 
             EXISTS (SELECT 1 FROM diary WHERE tmdb_id = mi.tmdb_id AND media_type = mi.media_type) as watched
         FROM media_info mi JOIN list_items li 
         ON mi.tmdb_id = li.tmdb_id 
         WHERE li.list_id = ? AND mi.media_type = li.media_type
         """
+        # query = """SELECT mi.title, mi.tmdb_id, mi.rating, mi.release_date, mi.media_type, mi.num_ratings,
+        #     EXISTS (SELECT 1 FROM diary WHERE tmdb_id = mi.tmdb_id AND media_type = mi.media_type) as watched
+        # FROM media_info mi JOIN list_items li
+        # ON mi.tmdb_id = li.tmdb_id
+        # WHERE li.list_id = ? AND mi.media_type = li.media_type
+        # """
 
         cursor.execute(query, (list_id,))
 
