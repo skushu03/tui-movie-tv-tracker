@@ -62,7 +62,7 @@ class MainScreen(Screen):
             ),
             Horizontal(
                 WatchStats(id="watch-stats", classes="pane-window"),
-                Diary(classes="pane-window"),
+                Diary(id="diary", classes="pane-window"),
             ),
         )
 
@@ -124,6 +124,11 @@ class MainScreen(Screen):
             # self.app.notify(str(selected_item.item_data))
             # return
             self.query_one("#media-details").refresh_data(selected_item.item_data)
+
+    @on(WatchStats.Selected)
+    async def watch_stats_month_selected(self, event):
+        # self.app.notify(str(event.month))
+        await self.query_one("#diary").refresh_content(event.year, event.month)
 
     def action_show_search_screen(self):
         async def update_lists(needs_update):

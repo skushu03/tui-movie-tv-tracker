@@ -491,7 +491,8 @@ def get_diary_entries(db, year, month):
         else:
             month_end = f"{year + 1}-01-01 00:00:00.000"
 
-        query = """SELECT * FROM diary 
+        query = """SELECT *
+        FROM diary 
         WHERE date >= ? AND date < ?
         ORDER BY date DESC
         """
@@ -521,7 +522,7 @@ def get_watched_stats(db, year):
 
         year = int(year)
         year_start = f"{year}-01-01 00:00:00.000"
-        year_end = f"{year + 1}-12-31 00:00:00.000"
+        year_end = f"{year + 1}-01-01 00:00:00.000"
 
         query = """
         SELECT 
