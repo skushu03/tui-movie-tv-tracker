@@ -47,8 +47,12 @@ ListContents MediaItem Label {
 	width: 1fr;
 }
 
-ListContents MediaItem Label:first-child{
-	width: 2fr;
+ListContents MediaItem #list-contents-item-title{
+	width: 3fr;
+}
+/*===============media details*/
+#md-label-overview {
+	margin: 1 0 0 0;
 }
 
 /*===============watch stats*/

@@ -1,3 +1,5 @@
+import sys
+
 from textual import on
 from textual.app import App
 from textual.containers import Horizontal, Vertical
@@ -75,14 +77,13 @@ class MainScreen(Screen):
         self.focus_index = 0
 
     async def refresh_panes(self, _=None):
-        self.app.notify("refreshing panes")
-
         lists_pane = self.query_one("#lists")
 
         await lists_pane.refresh_content()
-        await self.query_one("#list-contents").refresh_content(
-            lists_pane.selected_item.item_data
-        )
+        if lists_pane.selected_item:
+            await self.query_one("#list-contents").refresh_content(
+                lists_pane.selected_item.item_data
+            )
         # self.query_one("#media-details").refresh_content()
         self.query_one("#watch-stats").refresh_content()
         await self.query_one("#diary").refresh_content()
@@ -135,12 +136,20 @@ class MainScreen(Screen):
 class LayoutApp(App):
     CSS_PATH = "index.tcss"
 
-    def on_mount(self):
-        self.ansi_color = True
-        self.db = database.get_db()
+    def __init__(self, db_name=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # self.exit()
+        if db_name:
+            self.db = database.get_db(db_name=db_name)
+        else:
+            self.db = database.get_db()
+
         self.watched = database.get_watched(self.db)
         if not self.db:
             self.dismiss("")
+
+    def on_mount(self):
+        self.ansi_color = True
         self.push_screen(MainScreen(self.db))
 
     def on_unmount(self):
@@ -148,5 +157,9 @@ class LayoutApp(App):
 
 
 if __name__ == "__main__":
-    app = LayoutApp()
+    if len(sys.argv) > 1:
+        app = LayoutApp(sys.argv[1])
+    else:
+        app = LayoutApp()
+
     app.run()

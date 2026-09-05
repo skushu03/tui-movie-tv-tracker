@@ -23,7 +23,9 @@ def init_db(db):
             rating TEXT NOT NULL,
             num_ratings INTEGER NOT NULL,
             release_date TEXT NOT NULL,
-            media_type TEXT NOT NULL
+            media_type TEXT NOT NULL,
+            overview TEXT NOT NULL,
+            genre_ids TEXT NOT NULL
         )
     """
 
@@ -60,7 +62,7 @@ def init_db(db):
     cursor.close()
 
 
-def get_db(db_name="movie_tv_tracker.db"):
+def get_db(db_name="media_tracker.db"):
     try:
         # hidden directory to store the databases
         home_dir = Path.home()
@@ -237,17 +239,19 @@ def add_diary_entry(db, media_info, watched_set, date):
         # if not add
         cursor.execute(query, (media_info["tmdb_id"], media_info["media_type"]))
         if not cursor.fetchone():
-            query = "INSERT INTO media_info (title, tmdb_id, rating, num_ratings, release_date, media_type) VALUES (?, ?, ?, ?, ?, ?)"
+            query = "INSERT INTO media_info (title, tmdb_id, rating, num_ratings, release_date, media_type, overview, genre_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 
             cursor.execute(
                 query,
                 (
-                    media_info["title"],
-                    media_info["tmdb_id"],
-                    media_info["rating"],
-                    media_info["num_ratings"],
-                    media_info["release_date"],
-                    media_info["media_type"],
+                    media_info.get("title", ""),
+                    media_info.get("tmdb_id"),
+                    media_info.get("rating"),
+                    media_info.get("num_ratings", ""),
+                    media_info.get("release_date", ""),
+                    media_info.get("media_type", ""),
+                    media_info.get("overview", ""),
+                    ", ".join([str(gi) for gi in media_info.get("genre_ids", [])]),
                 ),
             )
         # add to diary
@@ -367,22 +371,28 @@ def add_list_item(db, media_data, list_id):
     try:
         cursor = db.cursor()
 
+        # PROBLEM, if the user is adding a show/movie to a list from the main page in the list-items pane, thos eitems dont contain info like overview and genre ids
+        # HOWEVER, if those items have been added to lists, the media_info should already have been added to the media_info table so the INSERT query below shouldnt run
+        # but i think this bad practice, fix laater **************
+
         # check if media_info entry/row exists for this media
         query = "SELECT 1 FROM media_info WHERE tmdb_id = ? AND media_type = ?"
         cursor.execute(query, (media_data["tmdb_id"], media_data["media_type"]))
 
         if not cursor.fetchone():
-            query = "INSERT INTO media_info (title, tmdb_id, rating, num_ratings, release_date, media_type) VALUES (?, ?, ?, ?, ?, ?)"
+            query = "INSERT INTO media_info (title, tmdb_id, rating, num_ratings, release_date, media_type, overview, genre_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 
             cursor.execute(
                 query,
                 (
-                    media_data["title"],
-                    media_data["tmdb_id"],
-                    media_data["rating"],
-                    media_data["num_ratings"],
-                    media_data["release_date"],
-                    media_data["media_type"],
+                    media_data.get("title", ""),
+                    media_data.get("tmdb_id"),
+                    media_data.get("rating"),
+                    media_data.get("num_ratings", ""),
+                    media_data.get("release_date", ""),
+                    media_data.get("media_type", ""),
+                    media_data.get("overview", ""),
+                    ", ".join([str(gi) for gi in media_data.get("genre_ids", [])]),
                 ),
             )
         # tmdb, list med
@@ -432,7 +442,7 @@ def get_media_info(db, tmdb_id, media_type):
     try:
         cursor = db.cursor()
 
-        query = "SELECT mi.title, mi.rating, mi.num_ratings, mi.media_type, mi.release_date FROM media_info mi WHERE mi.tmdb_id = ? AND mi.media_type = ?"
+        query = "SELECT mi.title, mi.rating, mi.num_ratings, mi.media_type, mi.release_date, mi.overview, mi.genre_ids FROM media_info mi WHERE mi.tmdb_id = ? AND mi.media_type = ?"
 
         cursor.execute(query, (tmdb_id, media_type))
 

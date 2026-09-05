@@ -1,5 +1,5 @@
 from textual.containers import Vertical
-from textual.widgets import Label
+from textual.widgets import Label, Static
 
 import tui_movie_tv_tracker.database as database
 
@@ -24,6 +24,10 @@ class MediaDetails(Vertical, can_focus=True):
             f"Rating: {self.media_info.get('rating', '0.0')}({self.media_info.get('num_ratings', 0)})",
             id="md-label-rating",
         )
+        yield Label(
+            f"Genres: {self.media_info.get('genre_ids', '')}", id="md-label-genres"
+        )
+        yield Static(self.media_info.get("overview", ""), id="md-label-overview")
 
     def on_mount(self):
         self.refresh_content()
@@ -44,6 +48,8 @@ class MediaDetails(Vertical, can_focus=True):
                 self.media_metadata.get("media_type", ""),
             )
 
+            # self.app.notify(str(self.media_info))
+
             # also add if not self.media_info, make http request
 
             self.query_one("#md-label-type").update(
@@ -57,6 +63,14 @@ class MediaDetails(Vertical, can_focus=True):
             )
             self.query_one("#md-label-rating").update(
                 f"Rating: {self.media_info.get('rating', '0.0')}({self.media_info.get('num_ratings', 0)})",
+            )
+
+            self.query_one("#md-label-genres").update(
+                f"Genres: {self.media_info.get('genre_ids', '')}"
+            )
+
+            self.query_one("#md-label-overview").update(
+                f"{self.media_info.get('overview', '')}"
             )
 
         except Exception as e:

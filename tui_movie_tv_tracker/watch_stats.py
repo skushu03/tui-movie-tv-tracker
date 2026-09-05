@@ -122,11 +122,11 @@ class WatchStats(Vertical, can_focus=True):
 
     def action_prev_year(self):
         self.year -= 1
-        self.refresh_stats(self.year)
+        self.refresh_content(self.year)
 
     def action_next_year(self):
         self.year += 1
-        self.refresh_stats(self.year)
+        self.refresh_content(self.year)
 
     def action_prev_month(self):
         old_month = self.month

@@ -21,7 +21,6 @@ class DiaryEntryModal(ModalScreen):
         super().__init__(*args, **kwargs)
         self.media_info = media_info
         self.curr_year = datetime.date.today().year
-
         self.year = 0
         self.month = 0
         self.day = 0

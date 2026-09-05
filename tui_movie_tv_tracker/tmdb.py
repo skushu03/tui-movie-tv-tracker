@@ -34,13 +34,13 @@ async def search_movie(query):
         for res in results["results"]:
             normalized_results.append(
                 {
-                    "title": res["title"],
-                    "tmdb_id": res["id"],
-                    "genre_ids": res["genre_ids"],
-                    "overview": res["overview"],
-                    "rating": str(round(res["vote_average"], 1)),
-                    "num_ratings": res["vote_count"],
-                    "release_date": res["release_date"],
+                    "title": res.get("title", ""),
+                    "tmdb_id": res.get("id", ""),
+                    "genre_ids": res.get("genre_ids", []),
+                    "overview": res.get("overview", ""),
+                    "rating": str(round(res.get("vote_average", 0), 1)),
+                    "num_ratings": res.get("vote_count", ""),
+                    "release_date": res.get("release_date", ""),
                     "media_type": "movie",
                 }
             )
@@ -62,12 +62,13 @@ async def search_show(query):
         for res in results["results"]:
             normalized_results.append(
                 {
-                    "title": res["name"],
-                    "tmdb_id": res["id"],
-                    "overview": res["overview"],
-                    "rating": str(round(res["vote_average"], 1)),
-                    "num_ratings": res["vote_count"],
-                    "release_date": res["first_air_date"],
+                    "title": res.get("name", ""),
+                    "tmdb_id": res.get("id", ""),
+                    "genre_ids": res.get("genre_ids", []),
+                    "overview": res.get("overview", ""),
+                    "rating": str(round(res.get("vote_average", 0), 1)),
+                    "num_ratings": res.get("vote_count", ""),
+                    "release_date": res.get("release_date", ""),
                     "media_type": "tv",
                 }
             )

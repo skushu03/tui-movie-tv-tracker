@@ -34,6 +34,7 @@ class MediaDetailsModal(ModalScreen):
             Label(
                 f"Rating: {self.media_info.get('rating', '0.0')}({self.media_info.get('num_ratings', 0)})",
             ),
+            Static(f"Genres: {self.media_info.get('genre_ids', [])}"),
             Static(self.media_info.get("overview", "")),
             classes="modal-container",
             id="search-details-modal",

@@ -25,13 +25,23 @@ class MediaItem(ListItem):
         self.item_data = item_data
 
     def compose(self):
+        media_type = self.item_data.get("media_type", "")
+
+        if media_type == "movie":
+            media_type_label = "\\[MV]"
+        elif media_type == "tv":
+            media_type_label = "\\[TV]"
+        else:
+            media_type_label = "\\[NA]"
+
         yield Horizontal(
+            # Label(media_type_label),
             Label(
-                self.item_data.get("title", ""),
+                f"{media_type_label} {self.item_data.get('title', '')}",
                 classes=f"{'media-item-watched' if self.item_data['watched'] else ''}",
+                id="list-contents-item-title",
             ),
             Label(self.item_data.get("release_date", "")[:4]),
-            Label(self.item_data.get("media_type", "")),
         )
 
 
