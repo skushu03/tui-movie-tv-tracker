@@ -1,5 +1,3 @@
-import asyncio
-
 import httpx
 from dotenv import dotenv_values
 
