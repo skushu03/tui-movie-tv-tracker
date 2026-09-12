@@ -76,7 +76,12 @@ class MainScreen(Screen):
         self.focusable_panes = self.query(".pane-window")
         self.focus_index = 0
 
-    async def refresh_panes(self, _=None):
+    async def refresh_panes(self, returned=None):
+        self.app.notify("dasa")
+        if not returned:
+            self.app.notify("dasdsadada")
+            return
+
         lists_pane = self.query_one("#lists")
 
         await lists_pane.refresh_content()

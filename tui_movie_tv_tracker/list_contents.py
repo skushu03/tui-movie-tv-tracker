@@ -86,6 +86,9 @@ class ListContents(Vertical, can_focus=True):
             new_widgets = [MediaItem(n) for n in new_items]
             await list_view.extend(new_widgets)
 
+            if list_view.children:
+                list_view.index = 0
+
             # self.app.notify("List contents updated")
 
         except Exception as e:

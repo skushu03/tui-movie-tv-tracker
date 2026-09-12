@@ -203,4 +203,4 @@ class SearchScreen(Screen):
         # self.app.notify("testing")
 
     def action_close(self):
-        self.dismiss()
+        self.dismiss(self.lists_updated)

@@ -6,6 +6,7 @@ from textual.widgets import Label, ListItem
 
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
+from tui_movie_tv_tracker.modals.checklist_modal import ChecklistModal
 
 
 class EntryList(ListView):
@@ -32,6 +33,8 @@ class EntryItem(ListItem):
 
 
 class Diary(Vertical, can_focus=True):
+    BINDINGS = [("a", "add", "Add to lists"), ("A", "add", "Add to lists")]
+
     def __init__(self, pane_title=None, *args, **kwargs):
         # why am i passing num_movie and num_tv?????
         super().__init__(*args, **kwargs)
@@ -89,10 +92,43 @@ class Diary(Vertical, can_focus=True):
             new_list_items = [EntryItem(e) for e in diary_entries]
             await list_view.extend(new_list_items)
 
+            if list_view.children:
+                list_view.index = 0
+
         except ValueError as e:
             self.app.notify(f"Value Error: {e}")
         except Exception as e:
             self.app.notify(str(e))
+
+    async def action_add(self):
+        # should prob make this into a general reusable function
+        highlighted_item = self.query_one("EntryList").highlighted_child
+
+        if not highlighted_item:
+            return
+
+        highlighted_item_data = highlighted_item.item_info
+
+        lists = database.get_lists_contain_media(
+            self.app.db,
+            highlighted_item_data["media_type"],
+            highlighted_item_data["tmdb_id"],
+        )
+
+        async def apply_changes(changes):
+            if not changes:
+                return
+
+            try:
+                if database.apply_changes_to_lists(
+                    self.app.db, highlighted_item_data, changes
+                ):
+                    await self.screen.refresh_panes(True)
+
+            except Exception as e:
+                self.app.notify(str(e), severity="warning")
+
+        await self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)
 
     def on_focus(self):
         self.query_one("#entry-list").focus()

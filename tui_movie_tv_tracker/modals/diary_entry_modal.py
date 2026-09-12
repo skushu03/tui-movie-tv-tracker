@@ -91,7 +91,7 @@ class DiaryEntryModal(ModalScreen):
         except Exception as e:
             self.app.notify(str(e), severity="warning")
         finally:
-            self.dismiss({})
+            self.dismiss(True)
 
     def action_exit(self):
-        self.dismiss({})
+        self.dismiss()
