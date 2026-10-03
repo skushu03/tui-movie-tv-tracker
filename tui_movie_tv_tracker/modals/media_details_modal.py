@@ -21,6 +21,7 @@ class MediaDetailsModal(ModalScreen):
         super().__init__(*args, **kwargs)
         self.media_info = media_info
         self.lists_updated = False
+        self.diary_updated = True
 
     def compose(self):
         yield Vertical(
@@ -59,9 +60,10 @@ class MediaDetailsModal(ModalScreen):
         await self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)
 
     def action_exit(self):
-        self.dismiss(self.lists_updated)
+        self.dismiss((self.lists_updated, self.diary_updated))
 
     def action_add_diary_entry(self):
-        self.app.push_screen(
-            DiaryEntryModal(self.media_info),
-        )
+        def set_diary_updated(diary_updated):
+            self.diary_updated = self.diary_updated or diary_updated
+
+        self.app.push_screen(DiaryEntryModal(self.media_info), set_diary_updated)

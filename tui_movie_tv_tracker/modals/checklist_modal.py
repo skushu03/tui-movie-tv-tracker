@@ -1,7 +1,7 @@
 from textual import on
 from textual.containers import Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Input, Label
+from textual.widgets import Label
 from textual.widgets import ListItem as TextualListItem
 
 from tui_movie_tv_tracker.base_widgets.list_view import ListView

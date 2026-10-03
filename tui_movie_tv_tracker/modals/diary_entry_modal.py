@@ -3,9 +3,8 @@ import datetime
 
 from textual import on
 from textual.containers import Container, Horizontal, Vertical
-from textual.message import Message
 from textual.screen import ModalScreen
-from textual.widgets import Button, Label, Select, Static
+from textual.widgets import Button, Label, Select
 
 import tui_movie_tv_tracker.database as database
 
@@ -15,7 +14,7 @@ MIN_YEAR = 1940
 
 
 class DiaryEntryModal(ModalScreen):
-    BINDINGS = [("escape", "exit", "Close modal"), ("x", "temp", "temp")]
+    BINDINGS = [("escape", "exit", "Close modal")]
 
     def __init__(self, media_info, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -94,4 +93,4 @@ class DiaryEntryModal(ModalScreen):
             self.dismiss(True)
 
     def action_exit(self):
-        self.dismiss()
+        self.dismiss(False)

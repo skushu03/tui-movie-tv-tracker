@@ -76,23 +76,22 @@ class MainScreen(Screen):
         self.focusable_panes = self.query(".pane-window")
         self.focus_index = 0
 
-    async def refresh_panes(self, returned=None):
-        self.app.notify("dasa")
-        if not returned:
-            self.app.notify("dasdsadada")
-            return
+    async def refresh_panes(self, panes_updated):
+        lists_updated, diary_updated = panes_updated
 
-        lists_pane = self.query_one("#lists")
+        if lists_updated:
+            lists_pane = self.query_one("#lists")
 
-        await lists_pane.refresh_content()
-        if lists_pane.selected_item:
-            await self.query_one("#list-contents").refresh_content(
-                lists_pane.selected_item.item_data
-            )
-        # self.query_one("#media-details").refresh_content()
-        self.query_one("#watch-stats").refresh_content()
-        await self.query_one("#diary").refresh_content()
-        pass
+            await lists_pane.refresh_content()
+            if lists_pane.selected_item:
+                await self.query_one("#list-contents").refresh_content(
+                    lists_pane.selected_item.item_data
+                )
+
+        if diary_updated:
+            # self.query_one("#media-details").refresh_content()
+            self.query_one("#watch-stats").refresh_content()
+            await self.query_one("#diary").refresh_content()
 
     def action_next_focus(self):
         self.focus_index = (self.focus_index + 1) % len(self.focusable_panes)
@@ -150,6 +149,7 @@ class LayoutApp(App):
             self.db = database.get_db()
 
         self.watched = database.get_watched(self.db)
+
         if not self.db:
             self.dismiss("")
 

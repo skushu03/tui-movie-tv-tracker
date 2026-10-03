@@ -49,9 +49,10 @@ class SearchResultsList(ListView):
 
         highlighted_item_data = self.highlighted_child.item_data
 
-        self.app.push_screen(
-            DiaryEntryModal(highlighted_item_data),
-        )
+        def set_diary_updated(diary_updated):
+            self.screen.diary_updated = self.screen.diary_updated or diary_updated
+
+        self.app.push_screen(DiaryEntryModal(highlighted_item_data), set_diary_updated)
 
 
 class SearchResultItem(TextualListItem):
@@ -89,6 +90,7 @@ class SearchScreen(Screen):
         self.num_pages = 0
 
         self.lists_updated = False
+        self.diary_updated = True
 
     def compose(self):
         yield Vertical(
@@ -176,11 +178,14 @@ class SearchScreen(Screen):
     def handle_search_result_selected(self, event):
         selected_item = event.item
 
-        def set_lists_updated(lists_updated):
+        def set_panes_updated(updated):
+            lists_updated, diary_updated = updated
+
             self.lists_updated = lists_updated or self.lists_updated
+            self.diary_updated = diary_updated or self.diary_updated
 
         self.app.push_screen(
-            MediaDetailsModal(selected_item.item_data), set_lists_updated
+            MediaDetailsModal(selected_item.item_data), set_panes_updated
         )
 
         # self.app.notify(str(selected_item.item_data))
@@ -203,4 +208,4 @@ class SearchScreen(Screen):
         # self.app.notify("testing")
 
     def action_close(self):
-        self.dismiss(self.lists_updated)
+        self.dismiss((self.lists_updated, self.diary_updated))
