@@ -77,7 +77,9 @@ class MainScreen(Screen):
         self.focus_index = 0
 
     async def refresh_panes(self, panes_updated):
-        lists_updated, diary_updated = panes_updated
+        lists_updated = panes_updated.get("lists", False)
+        diary_updated = panes_updated.get("diary", False)
+        # lists_updated, diary_updated = panes_updated
 
         if lists_updated:
             lists_pane = self.query_one("#lists")
@@ -106,10 +108,10 @@ class MainScreen(Screen):
         origin_id = event.list_view.id
         selected_item = event.item
 
-        lists_widget = self.query_one("#lists")
-        lists_widget.selected_item = lists_widget.children[lists_widget.index]
-
         if origin_id == "lists":
+            lists_widget = self.query_one("#lists")
+            lists_widget.selected_item = lists_widget.children[lists_widget.index]
+
             await self.query_one("#list-contents").refresh_content(
                 selected_item.item_data
             )

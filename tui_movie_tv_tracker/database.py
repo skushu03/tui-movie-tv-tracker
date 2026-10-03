@@ -1,6 +1,9 @@
 import datetime
+import re
 import sqlite3 as sqlite
 from pathlib import Path
+
+import tui_movie_tv_tracker.constants as constants
 
 
 def init_db(db):
@@ -155,8 +158,18 @@ def create_list(db, list_name):
         cursor = db.cursor()
 
         list_name = list_name.strip()
+
         if not list_name:
             raise ValueError("List name cannot be blank.")
+        # check fo rlenght
+        elif len(list_name) > constants.MAX_LIST_NAME_LEN:
+            raise ValueError(
+                f"List name exceeds max character limit of {constants.MAX_LIST_NAME_LEN}"
+            )
+        elif not re.match(r"[A-Za-z0-9-_\s\?!]+$", list_name):
+            raise ValueError(
+                "List names can only contain alphanumeric characters, spaces, underscores, hyphens, exclamation marks, question marks, and periods"
+            )
 
         query = "SELECT name FROM lists WHERE name = ?"
         cursor.execute(query, (list_name,))
@@ -171,12 +184,12 @@ def create_list(db, list_name):
 
         db.commit()
 
+    except ValueError as e:
+        raise ValueError(f"Value Error: {e}")
     except sqlite.IntegrityError as e:
-        raise Exception(f"Database conflict: {e}")
+        raise ValueError(f"Database conflict: {e}")
     except sqlite.Error as e:
         raise Exception(f"Database Error while creating a new list: {e}")
-    except ValueError as e:
-        raise Exception(f"Value Error: {e}")
     except Exception as e:
         raise Exception(f"Unexpected Error while creating a new list: {e}")
     finally:

@@ -1,0 +1,1 @@
+MAX_LIST_NAME_LEN = 48

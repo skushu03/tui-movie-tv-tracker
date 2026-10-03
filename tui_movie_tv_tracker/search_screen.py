@@ -8,7 +8,7 @@ import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker import tmdb
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
 from tui_movie_tv_tracker.modals.checklist_modal import ChecklistModal
-from tui_movie_tv_tracker.modals.diary_entry_modal import DiaryEntryModal
+from tui_movie_tv_tracker.modals.date_select_modal import DateSelectModal
 from tui_movie_tv_tracker.modals.media_details_modal import MediaDetailsModal
 
 
@@ -49,10 +49,17 @@ class SearchResultsList(ListView):
 
         highlighted_item_data = self.highlighted_child.item_data
 
-        def set_diary_updated(diary_updated):
-            self.screen.diary_updated = self.screen.diary_updated or diary_updated
+        def add_to_diary(selected_date):
+            if selected_date:
+                self.screen.diary_updated = True
 
-        self.app.push_screen(DiaryEntryModal(highlighted_item_data), set_diary_updated)
+                database.add_diary_entry(
+                    self.app.db, highlighted_item_data, self.app.watched, selected_date
+                )
+
+        self.app.push_screen(
+            DateSelectModal(highlighted_item_data["title"]), add_to_diary
+        )
 
 
 class SearchResultItem(TextualListItem):
@@ -179,10 +186,8 @@ class SearchScreen(Screen):
         selected_item = event.item
 
         def set_panes_updated(updated):
-            lists_updated, diary_updated = updated
-
-            self.lists_updated = lists_updated or self.lists_updated
-            self.diary_updated = diary_updated or self.diary_updated
+            self.lists_updated = updated.get("lists", False) or self.lists_updated
+            self.diary_updated = updated.get("diary", False) or self.diary_updated
 
         self.app.push_screen(
             MediaDetailsModal(selected_item.item_data), set_panes_updated
@@ -208,4 +213,4 @@ class SearchScreen(Screen):
         # self.app.notify("testing")
 
     def action_close(self):
-        self.dismiss((self.lists_updated, self.diary_updated))
+        self.dismiss({"lists": self.lists_updated, "diary": self.diary_updated})

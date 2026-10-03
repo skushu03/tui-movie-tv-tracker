@@ -68,11 +68,14 @@ class Lists(ListView):
 
                 database.create_list(self.app.db, list_name)
                 await self.refresh_content()
-            except Exception as e:
+
+            except ValueError as e:
                 self.app.notify(str(e), severity="warning")
+            except Exception as e:
+                raise Exception(e)
 
         await self.app.push_screen(
-            InputModal("Enter new list name:", 36), callback=handle_create_list
+            InputModal("Enter new list name:"), callback=handle_create_list
         )
 
     async def action_delete_list(self):
@@ -81,9 +84,7 @@ class Lists(ListView):
                 return
 
             try:
-                selected_list_name = self.query_one(Lists).highlighted_child.item_data[
-                    "name"
-                ]
+                selected_list_name = self.highlighted_child.item_data["name"]
                 database.delete_list(self.app.db, selected_list_name)
 
                 await self.refresh_content()

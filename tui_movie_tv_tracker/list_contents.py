@@ -4,7 +4,7 @@ from textual.widgets import Label, ListItem, Static
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker.base_widgets.list_view import ListView
 from tui_movie_tv_tracker.modals.checklist_modal import ChecklistModal
-from tui_movie_tv_tracker.modals.diary_entry_modal import DiaryEntryModal
+from tui_movie_tv_tracker.modals.date_select_modal import DateSelectModal
 from tui_movie_tv_tracker.modals.input_modal import InputModal
 
 
@@ -38,8 +38,7 @@ class MediaItem(ListItem):
             # Label(media_type_label),
             Label(
                 f"{media_type_label} {self.item_data.get('title', '')}",
-                classes=f"{'media-item-watched' if self.item_data['watched'] else ''}",
-                id="list-contents-item-title",
+                classes=f"{'media-item-watched' if self.item_data['watched'] else ''} list-contents-item-title",
             ),
             Label(self.item_data.get("release_date", "")[:4]),
         )
@@ -60,8 +59,11 @@ class ListContents(Vertical, can_focus=True):
         self.border_title = pane_title if pane_title else "List Contents"
         self.list_info = list_info
 
+        self.movie_count = 0
+        self.tv_count = 0
+
     def compose(self):
-        list_info_str = f"List Name: {self.list_info.get('name', '')}\nLast Updated: {self.list_info.get('last_updated', '')}"
+        list_info_str = f"List Name: {self.list_info.get('name', '')}\nLast Updated: {self.list_info.get('last_updated', '')}\nMovies: {self.movie_count}\nTV: {self.tv_count}"
 
         yield Static(list_info_str, id="list-info")
         yield MediaList(*[], id="media-list")
@@ -72,13 +74,25 @@ class ListContents(Vertical, can_focus=True):
             if new_list_info.get("id"):
                 self.list_info = new_list_info
 
-            list_info_str = f"List Name: {self.list_info.get('name', '')}\nLast Updated: {self.list_info.get('last_updated', '')}"
-
-            self.query_one("#list-info").update(list_info_str)
-
             new_items = database.get_list_items(
                 self.app.db, self.list_info.get("id", "")
             )
+
+            movie_count = 0
+            tv_count = 0
+            for item in new_items:
+                if item.get("media_type") == "movie":
+                    movie_count += 1
+                elif item.get("media_type") == "tv":
+                    tv_count += 1
+
+            self.movie_count = movie_count
+            self.tv_count = tv_count
+
+            list_info_str = f"List Name: {self.list_info.get('name', '')}\nLast Updated: {self.list_info.get('last_updated', '')}\nMovies: {self.movie_count}\nTV: {self.tv_count}"
+
+            self.query_one("#list-info").update(list_info_str)
+
             #
             list_view = self.query_one("#media-list")
 
@@ -120,7 +134,7 @@ class ListContents(Vertical, can_focus=True):
                 if database.apply_changes_to_lists(
                     self.app.db, highlighted_item_data, changes
                 ):
-                    await self.refresh_content()
+                    await self.refresh_content({"lists": True})
 
             except Exception as e:
                 self.app.notify(str(e), severity="warning")
@@ -159,6 +173,18 @@ class ListContents(Vertical, can_focus=True):
 
         highlighted_item_data = highlighted_item.item_data
 
+        async def add_to_diary(selected_date):
+            panes_updated = {}
+
+            if selected_date:
+                panes_updated["diary"] = True
+
+                database.add_diary_entry(
+                    self.app.db, highlighted_item_data, self.app.watched, selected_date
+                )
+
+            await self.screen.refresh_panes(panes_updated)
+
         await self.app.push_screen(
-            DiaryEntryModal(highlighted_item_data), self.screen.refresh_panes
+            DateSelectModal(highlighted_item_data["title"]), add_to_diary
         )

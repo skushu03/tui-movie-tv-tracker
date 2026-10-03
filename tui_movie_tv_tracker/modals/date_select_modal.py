@@ -13,35 +13,37 @@ MONTHS = list(calendar.month_name)[1:]
 MIN_YEAR = 1940
 
 
-class DiaryEntryModal(ModalScreen):
+class DateSelectModal(ModalScreen):
     BINDINGS = [("escape", "exit", "Close modal")]
 
-    def __init__(self, media_info, *args, **kwargs):
+    def __init__(self, media_title, prompt="", *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.media_info = media_info
+        self.media_title = media_title
         self.curr_year = datetime.date.today().year
         self.year = 0
         self.month = 0
         self.day = 0
 
     def compose(self):
-        media_title = self.media_info["title"]
+        if len(self.media_title) > 32:
+            self.media_title = self.media_title[:29] + "..."
 
-        if len(media_title) > 32:
-            media_title = media_title[:29] + "..."
+        today = datetime.datetime.today()
 
         yield Vertical(
-            Label(f'Watched "{media_title}" on:'),
+            Label(f'Watched "{self.media_title}" on:'),
             Horizontal(
                 Select.from_values(
                     [y for y in range(self.curr_year, MIN_YEAR - 1, -1)],
                     prompt="Year",
+                    value=today.year,
                     allow_blank=False,
                     id="diary-entry-year",
                 ),
                 Select.from_values(
                     MONTHS,
                     prompt="Month",
+                    value=today.strftime("%B"),
                     allow_blank=False,
                     id="diary-entry-month",
                 ),
@@ -66,7 +68,10 @@ class DiaryEntryModal(ModalScreen):
 
         month_range = calendar.monthrange(year, month)[1]
 
-        days_select.set_options([(str(d), str(d)) for d in range(1, month_range + 1)])
+        days_select.set_options(
+            [(f"{d:02d}", f"{d:02d}") for d in range(1, month_range + 1)]
+        )
+        days_select.value = f"{datetime.datetime.today().day:02d}"
 
         self.year = year
         self.month = month
@@ -78,19 +83,12 @@ class DiaryEntryModal(ModalScreen):
     @on(Button.Pressed, "#diary-entry-button")
     def add_entry(self):
         try:
-            database.add_diary_entry(
-                self.app.db,
-                self.media_info,
-                self.app.watched,
-                f"{self.year}-{self.month:02d}-{self.day:02d}",
-            )
-
-            self.app.notify(f'Diary entry added for "{self.media_info["title"]}"')
+            date_str = f"{self.year}-{self.month:02d}-{self.day:02d}"
 
         except Exception as e:
             self.app.notify(str(e), severity="warning")
         finally:
-            self.dismiss(True)
+            self.dismiss(date_str)
 
     def action_exit(self):
-        self.dismiss(False)
+        self.dismiss(None)

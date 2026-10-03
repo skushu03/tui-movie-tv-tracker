@@ -4,7 +4,7 @@ from textual.widgets import Label, Static
 
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker.modals.checklist_modal import ChecklistModal
-from tui_movie_tv_tracker.modals.diary_entry_modal import DiaryEntryModal
+from tui_movie_tv_tracker.modals.date_select_modal import DateSelectModal
 
 
 class MediaDetailsModal(ModalScreen):
@@ -60,10 +60,14 @@ class MediaDetailsModal(ModalScreen):
         await self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)
 
     def action_exit(self):
-        self.dismiss((self.lists_updated, self.diary_updated))
+        self.dismiss({"lists": self.lists_updated, "diary": self.diary_updated})
 
     def action_add_diary_entry(self):
-        def set_diary_updated(diary_updated):
-            self.diary_updated = self.diary_updated or diary_updated
+        def add_to_diary(selected_date):
+            if selected_date:
+                self.diary_updated = True
+                database.add_diary_entry(
+                    self.app.db, self.media_info, self.app.watched, selected_date
+                )
 
-        self.app.push_screen(DiaryEntryModal(self.media_info), set_diary_updated)
+        self.app.push_screen(DateSelectModal(self.media_info), add_to_diary)

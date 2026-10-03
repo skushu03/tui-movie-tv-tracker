@@ -1,3 +1,4 @@
+import tui_movie_tv_tracker.constants as constants
 from textual import on
 from textual.containers import Vertical
 from textual.screen import ModalScreen
@@ -7,7 +8,7 @@ from textual.widgets import Input, Label
 class InputModal(ModalScreen):
     BINDINGS = [("escape", "close", "Close modal")]
 
-    def __init__(self, prompt, max_len, *args, **kwargs):
+    def __init__(self, prompt, max_len=constants.MAX_LIST_NAME_LEN, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.prompt = prompt
         self.max_len = max_len
