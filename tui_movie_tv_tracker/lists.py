@@ -22,11 +22,18 @@ class Lists(ListView):
         ("d", "delete_list", "Delete list"),
         ("D", "delete_list", "Delete list"),
     ]
+    # BINDINGS = []
 
     def __init__(self, pane_title=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.border_title = pane_title if pane_title else "Lists"
         self.selected_item = None
+
+        # for action, value in self.app.keybinds["main_screen"]["lists"].items():
+        #     for kb in value["key_binds"]:
+        #         Lists.BINDINGS.append((kb, action, value["description"]))
+        #
+        # self.refresh_bindings()
 
     async def on_mount(self):
         await self.refresh_content()

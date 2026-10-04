@@ -1,0 +1,110 @@
+{
+	"main_screen": {
+		"general": {
+			"next_focus": {
+				"description": "Switch focus to next pane",
+				"key_binds": [
+					"tab"
+				]
+			},
+			"prev_focus": {
+				"description": "Switch focus to previous pane",
+				"key_binds": [
+					"shift+tab"
+				]
+			},
+			"show_search_screen": {
+				"description": "Display search screen",
+				"key_binds": [
+					"s",
+					"S"
+				]
+			}
+		},
+		"lists": {
+			"create_list": {
+				"description": "Create new list",
+				"key_binds": [
+					"a",
+					"A"
+				]
+			},
+			"delete_list": {
+				"description": "Delete list",
+				"key_binds": [
+					"d",
+					"D"
+				]
+			}
+		},
+		"list_contents": {
+			"add": {
+				"description": "Add to lists",
+				"key_binds": [
+					"a",
+					"A"
+				]
+			},
+			"delete": {
+				"description": "Delete from lists",
+				"key_binds": [
+					"d",
+					"D"
+				]
+			},
+			"add_diary_entry": {
+				"description": "Add diary entry",
+				"key_binds": [
+					"e",
+					"E"
+				]
+			}
+		},
+		"media_details": {},
+		"watch_stats": {
+			"prev_year": {
+				"description": "View previous year stats",
+				"key_binds": [
+					"j",
+					"J"
+				]
+			},
+			"next_year": {
+				"description": "View next year stats",
+				"key_binds": [
+					"k",
+					"K"
+				]
+			},
+			"prev_month": {
+				"description": "View previous month stats",
+				"key_binds": [
+					"h",
+					"H"
+				]
+			},
+			"next_month": {
+				"description": "View next month stats",
+				"key_binds": [
+					"l",
+					"L"
+				]
+			},
+			"select_month": {
+				"description": "Select month to view diary entries",
+				"key_binds": [
+					"enter"
+				]
+			}
+		},
+		"diary": {
+			"add": {
+				"description": "Add to lists",
+				"key_binds": [
+					"a",
+					"A"
+				]
+			}
+		}
+	}
+}

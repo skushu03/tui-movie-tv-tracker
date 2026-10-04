@@ -57,6 +57,15 @@ class SearchResultsList(ListView):
                     self.app.db, highlighted_item_data, self.app.watched, selected_date
                 )
 
+                # update the item in the search list with a highlighted green
+                item_title = self.highlighted_child.query_one(".result-item-title")
+                if item_title:
+                    item_title.classes = "result-item-title media-item-watched"
+
+                self.app.notify(
+                    f'Diary entry added for "{highlighted_item_data["title"]}"'
+                )
+
         self.app.push_screen(
             DateSelectModal(highlighted_item_data["title"]), add_to_diary
         )
@@ -73,7 +82,7 @@ class SearchResultItem(TextualListItem):
         yield Horizontal(
             Static(
                 self.item_data.get("title", ""),
-                classes=f"result-item-row {'media-item-watched' if self.item_data['watched'] else ''}",
+                classes=f"result-item-title {'media-item-watched' if self.item_data['watched'] else ''}",
             ),
             Static(self.item_data.get("release_date", "")),
             Static(str(self.item_data.get("rating", ""))),
@@ -97,7 +106,7 @@ class SearchScreen(Screen):
         self.num_pages = 0
 
         self.lists_updated = False
-        self.diary_updated = True
+        self.diary_updated = False
 
     def compose(self):
         yield Vertical(

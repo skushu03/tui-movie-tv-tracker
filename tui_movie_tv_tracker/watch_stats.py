@@ -72,29 +72,27 @@ class WatchStats(Vertical, can_focus=True):
         )
 
     def on_mount(self):
+        self.year_label = self.query_one("#watch-stats-year")
+        self.movie_bars = self.query(".watch-stats-movie-bar")
+        self.tv_bars = self.query(".watch-stats-tv-bar")
+        self.month_labels = self.query(".watch-stats-month")
+
         self.refresh_content(self.year)
 
     def refresh_content(self, year=None):
         try:
             if year:
                 self.year = year
-                self.year_label = self.query_one("#watch-stats-year")
                 self.year_label.update(str(self.year))
 
             watched_stats = database.get_watched_stats(self.app.db, self.year)
 
-            movie_bars = self.query(".watch-stats-movie-bar")
-            tv_bars = self.query(".watch-stats-tv-bar")
-
-            self.query(".watch-stats-month")[
-                self.month - 1
-            ].styles.background = HIGHLIGHT_COLOUR
+            self.month_labels[self.month - 1].styles.background = HIGHLIGHT_COLOUR
 
             for i in range(12):
-                movie_bars[i].styles.display = "none"
-                tv_bars[i].styles.display = "none"
+                self.movie_bars[i].styles.display = "none"
+                self.tv_bars[i].styles.display = "none"
 
-                # movie_bars[i].update("")
             if watched_stats:
                 max_total = max(i["total_count"] for i in watched_stats)
 
@@ -102,20 +100,20 @@ class WatchStats(Vertical, can_focus=True):
                     month_index = int(info["month"][5:]) - 1
 
                     if info["movie_count"]:
-                        movie_bars[
+                        self.movie_bars[
                             month_index
                         ].styles.height = (
                             f"{(info['movie_count'] / max_total * 100):.0f}%"
                         )
 
-                        movie_bars[month_index].styles.display = "block"
+                        self.movie_bars[month_index].styles.display = "block"
 
                     if info["tv_count"]:
-                        tv_bars[
+                        self.tv_bars[
                             month_index
                         ].styles.height = f"{(info['tv_count'] / max_total * 100):.0f}%"
 
-                        tv_bars[month_index].styles.display = "block"
+                        self.tv_bars[month_index].styles.display = "block"
 
         except Exception as e:
             self.app.notify(str(e))
@@ -132,19 +130,19 @@ class WatchStats(Vertical, can_focus=True):
         old_month = self.month
         self.month = (self.month - 1) % 12
 
-        month_labels = self.query(".watch-stats-month")
+        self.month_labels = self.query(".watch-stats-month")
 
-        month_labels[old_month - 1].styles.background = "transparent"
-        month_labels[self.month - 1].styles.background = HIGHLIGHT_COLOUR
+        self.month_labels[old_month - 1].styles.background = "transparent"
+        self.month_labels[self.month - 1].styles.background = HIGHLIGHT_COLOUR
 
     def action_next_month(self):
         old_month = self.month
         self.month = (self.month + 1) % 12
 
-        month_labels = self.query(".watch-stats-month")
+        self.month_labels = self.query(".watch-stats-month")
 
-        month_labels[old_month - 1].styles.background = "transparent"
-        month_labels[self.month - 1].styles.background = HIGHLIGHT_COLOUR
+        self.month_labels[old_month - 1].styles.background = "transparent"
+        self.month_labels[self.month - 1].styles.background = HIGHLIGHT_COLOUR
 
     def action_select_month(self):
         self.post_message(self.Selected(self.year, self.month))

@@ -68,6 +68,10 @@ class ListContents(Vertical, can_focus=True):
         yield Static(list_info_str, id="list-info")
         yield MediaList(*[], id="media-list")
 
+    def on_mount(self):
+        self.media_list = self.query_one("#media-list")
+        self.list_info_label = self.query_one("#list-info")
+
     async def refresh_content(self, new_list_info={}):
         # self.app.notify("Refreshing list content...")
         try:
@@ -91,17 +95,17 @@ class ListContents(Vertical, can_focus=True):
 
             list_info_str = f"List Name: {self.list_info.get('name', '')}\nLast Updated: {self.list_info.get('last_updated', '')}\nMovies: {self.movie_count}\nTV: {self.tv_count}"
 
-            self.query_one("#list-info").update(list_info_str)
+            self.list_info_label.update(list_info_str)
 
             #
-            list_view = self.query_one("#media-list")
+            # list_view = self.media_list
 
-            await list_view.clear()
+            await self.media_list.clear()
             new_widgets = [MediaItem(n) for n in new_items]
-            await list_view.extend(new_widgets)
+            await self.media_list.extend(new_widgets)
 
-            if list_view.children:
-                list_view.index = 0
+            if self.media_list.children:
+                self.media_list.index = 0
 
             # self.app.notify("List contents updated")
 
@@ -109,11 +113,11 @@ class ListContents(Vertical, can_focus=True):
             self.app.notify(str(e), severity="warning")
 
     def on_focus(self):
-        self.query_one("#media-list").focus()
+        self.media_list.focus()
 
     async def action_add(self):
         # should prob make this into a general reusable function
-        highlighted_item = self.query_one("MediaList").highlighted_child
+        highlighted_item = self.media_list.highlighted_child
 
         if not highlighted_item:
             return
@@ -142,7 +146,7 @@ class ListContents(Vertical, can_focus=True):
         await self.app.push_screen(ChecklistModal("Lists", lists), apply_changes)
 
     async def action_delete(self):
-        highlighted_item = self.query_one("MediaList").highlighted_child
+        highlighted_item = self.media_list.highlighted_child
 
         if not self.list_info or not highlighted_item:
             return
@@ -166,7 +170,7 @@ class ListContents(Vertical, can_focus=True):
         )
 
     async def action_add_diary_entry(self):
-        highlighted_item = self.query_one("MediaList").highlighted_child
+        highlighted_item = self.media_list.highlighted_child
 
         if not self.list_info or not highlighted_item:
             return

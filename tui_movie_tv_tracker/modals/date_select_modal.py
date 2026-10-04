@@ -6,8 +6,6 @@ from textual.containers import Container, Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Label, Select
 
-import tui_movie_tv_tracker.database as database
-
 MONTHS = list(calendar.month_name)[1:]
 
 MIN_YEAR = 1940
@@ -81,7 +79,7 @@ class DateSelectModal(ModalScreen):
         self.day = int(self.query_one("#diary-entry-day").selection)
 
     @on(Button.Pressed, "#diary-entry-button")
-    def add_entry(self):
+    def select_date(self):
         try:
             date_str = f"{self.year}-{self.month:02d}-{self.day:02d}"
 

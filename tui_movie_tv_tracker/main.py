@@ -1,3 +1,4 @@
+import json
 import sys
 
 from textual import on
@@ -24,35 +25,25 @@ class Pane(Static):
 
 
 class MainScreen(Screen):
-    BINDINGS = [
-        ("tab", "next_focus", "Switch focus to next pane"),
-        ("shift+tab", "prev_focus", "Switch focus to previous pane"),
-        ("s", "show_search_screen", "Display search screen"),
-        ("S", "show_search_screen", "Display search screen"),
-        ("t", "temp", ""),
-    ]
-
-    def action_temp(self):
-        x = database.get_watched_stats(self.app.db, 2026)
-        # max_total = max(i["total_count"] for i in x)
-        #
-        # for i in x:
-        #     self.app.notify(str(i))
-        # self.app.notify(i["month"] + str(i["movie_count"] / max_total * 100))
-        x = database.get_diary_entries(self.app.db, 2026, 7)
-        #
-        for i in x:
-            self.app.notify(i["title"] + i["media_type"])
-        #
-        # for i in self.focusable_panes:
-        #     self.app.notify(i.id)
-        # self.app.notify(str(len(self.focusable_panes)))
-        return
+    # BINDINGS = [
+    #     ("tab", "next_focus", "Switch focus to next pane"),
+    #     ("shift+tab", "prev_focus", "Switch focus to previous pane"),
+    #     ("s", "show_search_screen", "Display search screen"),
+    #     ("S", "show_search_screen", "Display search screen"),
+    # ]
+    BINDINGS = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        for action, value in self.app.keybinds["main_screen"]["general"].items():
+            for kb in value["key_binds"]:
+                MainScreen.BINDINGS.append((kb, action, value["description"]))
+
+        self.refresh_bindings()
+
     def compose(self):
+        self.app.notify(str(MainScreen.BINDINGS))
         yield Vertical(
             Horizontal(
                 Lists(*[], id="lists", classes="pane-window"),
@@ -66,15 +57,20 @@ class MainScreen(Screen):
         )
 
     async def on_mount(self):
-        selected_list = self.query_one("#lists").selected_item
+        self.focusable_panes = self.query(".pane-window")
+
+        self.pane_refs = {}
+        for pane in self.focusable_panes:
+            self.pane_refs[pane.id] = pane
+
+        self.focus_index = 0
+
+        selected_list = self.pane_refs["lists"].selected_item
 
         if selected_list:
-            await self.query_one("#list-contents").refresh_content(
+            await self.pane_refs["list-contents"].refresh_content(
                 selected_list.item_data
             )
-        #
-        self.focusable_panes = self.query(".pane-window")
-        self.focus_index = 0
 
     async def refresh_panes(self, panes_updated):
         lists_updated = panes_updated.get("lists", False)
@@ -82,18 +78,17 @@ class MainScreen(Screen):
         # lists_updated, diary_updated = panes_updated
 
         if lists_updated:
-            lists_pane = self.query_one("#lists")
+            lists_pane = self.pane_refs["lists"]
 
             await lists_pane.refresh_content()
             if lists_pane.selected_item:
-                await self.query_one("#list-contents").refresh_content(
+                await self.pane_refs["list-contents"].refresh_content(
                     lists_pane.selected_item.item_data
                 )
 
         if diary_updated:
-            # self.query_one("#media-details").refresh_content()
-            self.query_one("#watch-stats").refresh_content()
-            await self.query_one("#diary").refresh_content()
+            self.pane_refs["watch-stats"].refresh_content()
+            await self.pane_refs["diary"].refresh_content()
 
     def action_next_focus(self):
         self.focus_index = (self.focus_index + 1) % len(self.focusable_panes)
@@ -109,10 +104,10 @@ class MainScreen(Screen):
         selected_item = event.item
 
         if origin_id == "lists":
-            lists_widget = self.query_one("#lists")
+            lists_widget = self.pane_refs["lists"]
             lists_widget.selected_item = lists_widget.children[lists_widget.index]
 
-            await self.query_one("#list-contents").refresh_content(
+            await self.pane_refs["list-contents"].refresh_content(
                 selected_item.item_data
             )
 
@@ -123,17 +118,17 @@ class MainScreen(Screen):
 
         if origin_id == "media-list":
             # self.app.notify(str(selected_item.item_data))
-            self.query_one("#media-details").refresh_content(selected_item.item_data)
+            self.pane_refs["media-details"].refresh_content(selected_item.item_data)
 
     @on(WatchStats.Selected)
     async def watch_stats_month_selected(self, event):
-        await self.query_one("#diary").refresh_content(event.year, event.month)
+        await self.pane_refs["diary"].refresh_content(event.year, event.month)
 
     @on(Lists.Selected, "#entry-list")
     def entry_list_item_selected(self, event):
         selected_item = event.item
         # self.app.notify(str(selected_item.item_info))
-        self.query_one("#media-details").refresh_content(selected_item.item_info)
+        self.pane_refs["media-details"].refresh_content(selected_item.item_info)
 
     def action_show_search_screen(self):
         self.app.push_screen(SearchScreen(), self.refresh_panes)
@@ -151,6 +146,9 @@ class LayoutApp(App):
             self.db = database.get_db()
 
         self.watched = database.get_watched(self.db)
+
+        with open("tui_movie_tv_tracker/keybinds.json", "r") as file:
+            self.keybinds = json.load(file)
 
         if not self.db:
             self.dismiss("")

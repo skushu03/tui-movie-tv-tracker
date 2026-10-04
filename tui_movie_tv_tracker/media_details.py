@@ -30,6 +30,13 @@ class MediaDetails(Vertical, can_focus=True):
         yield Static(self.media_info.get("overview", ""), id="md-label-overview")
 
     def on_mount(self):
+        self.type_label = self.query_one("#md-label-type")
+        self.title_label = self.query_one("#md-label-title")
+        self.release_label = self.query_one("#md-label-release")
+        self.rating_label = self.query_one("#md-label-rating")
+        self.genres_label = self.query_one("#md-label-genres")
+        self.overview_label = self.query_one("#md-label-overview")
+
         self.refresh_content()
 
     def refresh_content(self, new_media_metadata={}):
@@ -48,30 +55,20 @@ class MediaDetails(Vertical, can_focus=True):
                 self.media_metadata.get("media_type", ""),
             )
 
-            # self.app.notify(str(self.media_info))
-
-            # also add if not self.media_info, make http request
-
-            self.query_one("#md-label-type").update(
+            self.type_label.update(
                 f"\\[{self.media_info.get('media_type', '').upper()}]"
             )
-            self.query_one("#md-label-title").update(
-                f"Title: {self.media_info.get('title', '')}"
-            )
-            self.query_one("#md-label-release").update(
+            self.title_label.update(f"Title: {self.media_info.get('title', '')}")
+            self.release_label.update(
                 f"Release Date: {self.media_info.get('release_date', '')}",
             )
-            self.query_one("#md-label-rating").update(
+            self.rating_label.update(
                 f"Rating: {self.media_info.get('rating', '0.0')}({self.media_info.get('num_ratings', 0)})",
             )
 
-            self.query_one("#md-label-genres").update(
-                f"Genres: {self.media_info.get('genre_ids', '')}"
-            )
+            self.genres_label.update(f"Genres: {self.media_info.get('genre_ids', '')}")
 
-            self.query_one("#md-label-overview").update(
-                f"{self.media_info.get('overview', '')}"
-            )
+            self.overview_label.update(f"{self.media_info.get('overview', '')}")
 
         except Exception as e:
             self.app.notify(str(e), severity="warning")
