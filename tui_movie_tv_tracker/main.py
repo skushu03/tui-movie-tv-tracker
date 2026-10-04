@@ -25,22 +25,15 @@ class Pane(Static):
 
 
 class MainScreen(Screen):
-    # BINDINGS = [
-    #     ("tab", "next_focus", "Switch focus to next pane"),
-    #     ("shift+tab", "prev_focus", "Switch focus to previous pane"),
-    #     ("s", "show_search_screen", "Display search screen"),
-    #     ("S", "show_search_screen", "Display search screen"),
-    # ]
-    BINDINGS = []
+    BINDINGS = [
+        ("tab", "next_focus", "Switch focus to next pane"),
+        ("shift+tab", "prev_focus", "Switch focus to previous pane"),
+        ("s", "show_search_screen", "Display search screen"),
+        ("S", "show_search_screen", "Display search screen"),
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        for action, value in self.app.keybinds["main_screen"]["general"].items():
-            for kb in value["key_binds"]:
-                MainScreen.BINDINGS.append((kb, action, value["description"]))
-
-        self.refresh_bindings()
 
     def compose(self):
         self.app.notify(str(MainScreen.BINDINGS))
