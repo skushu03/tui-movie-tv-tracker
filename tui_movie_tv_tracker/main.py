@@ -5,7 +5,7 @@ from textual import on
 from textual.app import App
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Static
+from textual.widgets import Footer, Static
 
 from tui_movie_tv_tracker import database
 from tui_movie_tv_tracker.diary import Diary
@@ -36,7 +36,6 @@ class MainScreen(Screen):
         super().__init__(*args, **kwargs)
 
     def compose(self):
-        self.app.notify(str(MainScreen.BINDINGS))
         yield Vertical(
             Horizontal(
                 Lists(*[], id="lists", classes="pane-window"),
@@ -47,6 +46,7 @@ class MainScreen(Screen):
                 WatchStats(id="watch-stats", classes="pane-window"),
                 Diary(id="diary", classes="pane-window"),
             ),
+            Footer(),
         )
 
     async def on_mount(self):
