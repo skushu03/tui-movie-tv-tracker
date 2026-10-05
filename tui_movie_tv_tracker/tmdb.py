@@ -7,7 +7,7 @@ async def search(query, media_type):
         if media_type == "movie":
             return await search_movie(query)
         elif media_type == "show":
-            return await search_show(query)
+            return await search_tv(query)
         else:
             raise ValueError(f'Invalid media type given to search -> "{media_type}"')
     except httpx.ConnectError as e:
@@ -46,7 +46,7 @@ async def search_movie(query):
     return results["page"], results["total_pages"], normalized_results
 
 
-async def search_show(query):
+async def search_tv(query):
     api_key = dotenv_values(".env")["TMDB_API_KEY"]
     url = f"https://api.themoviedb.org/3/search/tv?query={query}&include_adult=false&language=en-US&page=1"
 
@@ -66,7 +66,7 @@ async def search_show(query):
                     "overview": res.get("overview", ""),
                     "rating": str(round(res.get("vote_average", 0), 1)),
                     "num_ratings": res.get("vote_count", ""),
-                    "release_date": res.get("release_date", ""),
+                    "release_date": res.get("first_air_date", ""),
                     "media_type": "tv",
                 }
             )
