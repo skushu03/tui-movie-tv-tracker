@@ -2,6 +2,7 @@ from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Label, Static
 
+import tui_movie_tv_tracker.constants as constants
 import tui_movie_tv_tracker.database as database
 from tui_movie_tv_tracker.modals.checklist_modal import ChecklistModal
 from tui_movie_tv_tracker.modals.date_select_modal import DateSelectModal
@@ -24,6 +25,18 @@ class MediaDetailsModal(ModalScreen):
         self.diary_updated = True
 
     def compose(self):
+        media_type = self.media_info.get("media_type", "")
+
+        genre_ids = self.media_info.get("genre_ids", [])
+
+        if media_type == "movie":
+            genre_names = [constants.MOVIE_GENRE_MAP[int(id)] for id in genre_ids]
+
+        elif media_type == "tv":
+            genre_names = [constants.TV_GENRE_MAP[int(id)] for id in genre_ids]
+        else:
+            genre_names = []
+
         yield Vertical(
             Label(
                 f"\\[{self.media_info.get('media_type', '').upper()}]",
@@ -35,7 +48,8 @@ class MediaDetailsModal(ModalScreen):
             Label(
                 f"Rating: {self.media_info.get('rating', '0.0')}({self.media_info.get('num_ratings', 0)})",
             ),
-            Static(f"Genres: {self.media_info.get('genre_ids', [])}"),
+            Static(f"Genres: {genre_names}"),
+            # Static(f"Genres: {self.media_info.get('genre_ids', [])}"),
             Static(self.media_info.get("overview", "")),
             classes="modal-container",
             id="search-details-modal",
