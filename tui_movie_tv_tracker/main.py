@@ -155,7 +155,7 @@ class LayoutApp(App):
 
 
 def start():
-    if (sys.argv) > 1:
+    if len(sys.argv) > 1:
         app = LayoutApp(sys.argv[1])
     else:
         app = LayoutApp()
