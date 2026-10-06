@@ -1,0 +1,36 @@
+Metadata-Version: 2.4
+Name: tui-movie-tv-tracker
+Version: 0.1.0
+Summary: A Textual TUI for tracking movies and TV shows you've watched
+Requires-Python: >=3.14
+Description-Content-Type: text/markdown
+Requires-Dist: anyio==4.14.2
+Requires-Dist: certifi==2026.7.22
+Requires-Dist: charset-normalizer==3.4.9
+Requires-Dist: h11==0.16.0
+Requires-Dist: httpcore==1.0.9
+Requires-Dist: httpx==0.28.1
+Requires-Dist: idna==3.18
+Requires-Dist: linkify-it-py==2.1.0
+Requires-Dist: markdown-it-py==4.2.0
+Requires-Dist: mdit-py-plugins==0.6.1
+Requires-Dist: mdurl==0.1.2
+Requires-Dist: platformdirs==4.11.0
+Requires-Dist: Pygments==2.20.0
+Requires-Dist: python-dotenv==1.2.2
+Requires-Dist: requests==2.34.2
+Requires-Dist: rich==15.0.0
+Requires-Dist: textual==8.2.8
+Requires-Dist: typing_extensions==4.16.0
+Requires-Dist: uc-micro-py==2.0.0
+Requires-Dist: urllib3==2.7.0
+
+# TUI Media Tracker
+
+A TUI app for tracking movies and shows you've watched and want to watch using the TMDB API.
+
+---
+
+## Future plans
+
+- Allow users to log shows by individual seasons

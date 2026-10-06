@@ -1,0 +1,2 @@
+[console_scripts]
+media-tracker = tui_movie_tv_tracker.main:start
