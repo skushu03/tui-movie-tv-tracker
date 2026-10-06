@@ -3,3 +3,5 @@ keybinds.json
 __pycache__
 .env
 config/.env
+build/
+*.egg-info
