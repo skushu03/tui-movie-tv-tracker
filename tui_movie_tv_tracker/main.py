@@ -140,8 +140,8 @@ class LayoutApp(App):
 
         self.watched = database.get_watched(self.db)
 
-        with open("tui_movie_tv_tracker/keybinds.json", "r") as file:
-            self.keybinds = json.load(file)
+        # with open("tui_movie_tv_tracker/keybinds.json", "r") as file:
+        #     self.keybinds = json.load(file)
 
         if not self.db:
             self.dismiss("")
